@@ -108,7 +108,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   <div class="sb-title">⚙️ Assumptions</div>
   <div class="sb-section"><div class="sb-hd">Global</div><div id="g-grid"></div></div>
   <div class="sb-section"><div class="sb-hd">Efficiency Big Rocks</div><div id="rocks-grid"></div></div>
-  <div class="sb-section"><div class="sb-hd">Per-SKU</div><div class="sku-grid" id="sku-grid"></div></div>
+  <div class="sb-section"><div class="sb-hd">Pricing & Entitlements</div><div class="sku-grid" id="sku-pricing"></div></div>
+  <div class="sb-section"><div class="sb-hd">Usage & Overage</div><div class="sku-grid" id="sku-usage"></div></div>
+  <div class="sb-section"><div class="sb-hd">Growth & Retention</div><div class="sku-grid" id="sku-growth"></div></div>
 </div>
 <!-- ═══ MAIN (right) ═══ -->
 <div class="main">
@@ -184,23 +186,17 @@ const B={subs:{"Pro":942226,"Pro+":143442},costPerPRU:.25,
   pru:{"Pro":{p0:0,p10:3.6,p25:20,p50:87,p75:229,p90:405,p95:604,p99:2176,p100:50000},
        "Pro+":{p0:0,p10:43,p25:193,p50:604,p75:1275,p90:2260,p95:3579,p99:10927,p100:100000}}};
 
-const S={provDisc:40,wacc:12,
+const S={provDisc:40,wacc:12,cogsImprove:0.3,
   rocks:{
     firstParty:{on:false,pct:20,mo:12,label:'Launch 1P Model',desc:'Ship in-house model, eliminate 3P margin on key workloads'},
     selfHost:{on:false,pct:15,mo:18,label:'Self-Hosted Inference',desc:'Run partner models on own infra, cut hosting markup'},
     partnerNeg:{on:true,pct:12,mo:6,label:'Partner Negotiations',desc:'Volume discounts, committed spend deals with providers'},
   },
-  cogsImprove:0.3,
-  utilization:55,
   skus:{
-    "Pro":  {p:10,ovDisc:10,ret:75,up:11,avgUse:16,avgUseGrow:0.5,dorm:15,grow:5,
-             eByYr:[13,13,14,14,14,15,15,15,16,16], ovByYr:[5,6,7,8,9,10,11,12,13,14]},
-    "Pro+": {p:39,ovDisc:10,ret:78,up:8,avgUse:75,avgUseGrow:3,dorm:8,grow:3,
-             eByYr:[72,73,74,74,75,75,76,76,77,77], ovByYr:[8,10,12,14,16,18,20,22,24,26]},
-    "Max":  {p:100,ovDisc:10,ret:88,up:5,avgUse:230,avgUseGrow:12,dorm:3,grow:2,
-             eByYr:[228,232,236,240,244,248,252,256,260,264], ovByYr:[12,16,20,24,28,32,36,40,44,48]},
-    "Ultra":{p:200,ovDisc:10,ret:93,up:0,avgUse:480,avgUseGrow:40,dorm:0,grow:1,
-             eByYr:[470,478,486,494,502,510,518,526,534,542], ovByYr:[52,60,67,73,78,82,85,87,89,90]},
+    "Pro":  {p:10,eYr1:13,eGrow:3,avgUse:16,avgUseGrow:3,ovDisc:10,util:50,dorm:15,grow:5,ret:75,up:11,ovPctYr1:5,ovPctYr10:14},
+    "Pro+": {p:39,eYr1:72,eGrow:2,avgUse:75,avgUseGrow:4,ovDisc:10,util:55,dorm:8,grow:3,ret:78,up:8,ovPctYr1:8,ovPctYr10:26},
+    "Max":  {p:100,eYr1:228,eGrow:3,avgUse:230,avgUseGrow:5,ovDisc:10,util:55,dorm:3,grow:2,ret:88,up:5,ovPctYr1:12,ovPctYr10:48},
+    "Ultra":{p:200,eYr1:470,eGrow:3,avgUse:480,avgUseGrow:7,ovDisc:10,util:60,dorm:0,grow:1,ret:93,up:0,ovPctYr1:52,ovPctYr10:90},
   }};
 let selectedYear=0;
 let revViewTier="arr";
@@ -211,16 +207,20 @@ const fmt=n=>Math.abs(n)>=1e9?`$${(n/1e9).toFixed(1)}B`:Math.abs(n)>=1e6?`$${(n/
 const fN=n=>Math.abs(n)>=1e6?`${(n/1e6).toFixed(1)}M`:Math.abs(n)>=1e3?`${(n/1e3).toFixed(0)}K`:`${n.toFixed(0)}`;
 let CH={};function dc(id){if(CH[id]){CH[id].destroy();delete CH[id]}}
 
-// Helper: get entitlement for tier t at month m
-function getE(t,m){const yr=Math.min(9,Math.floor(m/12));return S.skus[t].eByYr[yr];}
-function getOvPct(t,m){const yr=Math.min(9,Math.floor(m/12));return S.skus[t].ovByYr[yr]/100;}
+// Compute entitlement at year yr from Yr1 value + annual growth %
+function getE(t,m){const yr=Math.min(9,Math.floor(m/12));const s=S.skus[t];return Math.round(s.eYr1*Math.pow(1+s.eGrow/100,yr));}
+// Interpolate overage % from Yr1→Yr10
+function getOvPct(t,m){const yr=Math.min(9,Math.floor(m/12));const s=S.skus[t];return (s.ovPctYr1+(s.ovPctYr10-s.ovPctYr1)*yr/9)/100;}
+// Get avgUse at year yr
+function getAvgUse(t,yr){const s=S.skus[t];return s.avgUse*Math.pow(1+s.avgUseGrow/100,yr);}
+// Get utilization for tier
+function getUtil(t){return S.skus[t].util/100;}
 
 /* ══ BUILD UI ══ */
 const GLOBS=[
   {key:'provDisc',label:'Provider Discount',min:10,max:60,suf:'%'},
-  {key:'wacc',label:'Discount Rate',min:5,max:25,suf:'%'},
   {key:'cogsImprove',label:'Monthly COGS Improve',min:0,max:3,suf:'%',step:.1,dec:1},
-  {key:'utilization',label:'Entitlement Utilization',min:30,max:90,suf:'%'},
+  {key:'wacc',label:'Discount Rate (WACC)',min:5,max:25,suf:'%'},
 ];
 function buildGlobs(){
   let h='';GLOBS.forEach(g=>{
@@ -246,23 +246,41 @@ function buildRocks(){
   $('rocks-grid').innerHTML=h;
 }
 
-const SROWS=[
-  {l:'Price $/mo',k:'p'},{l:'Value Ratio (Yr1)',k:'_ratio',c:true},
-  {l:'Avg Consumption $',k:'avgUse'},{l:'Usage Growth $/yr',k:'avgUseGrow'},
-  {l:'% in Overage (Yr1)',k:'_ov1',c:true},
-  {l:'Overage Disc %',k:'ovDisc'},{l:'Overage GM %',k:'_ovgm',c:true},
-  {l:'Dormant Subs %',k:'dorm'},{l:'New User Growth %/mo',k:'grow'},
-  {l:'Retention (ann %)',k:'ret'},{l:'Upsell (ann %)',k:'up'},
+const SKU_PRICING=[
+  {l:'Price $/mo',k:'p'},
+  {l:'Entitlement $ (Yr1)',k:'eYr1'},
+  {l:'Entitlement Growth %/yr',k:'eGrow'},
+  {l:'Value Ratio (Yr1)',k:'_ratio',c:true},
 ];
-function buildSku(){
+const SKU_USAGE=[
+  {l:'Avg Consumption $ (Yr1)',k:'avgUse'},
+  {l:'Consumption Growth %/yr',k:'avgUseGrow'},
+  {l:'Entitlement Utilization %',k:'util'},
+  {l:'% in Overage (Yr1)',k:'ovPctYr1'},
+  {l:'% in Overage (Yr10)',k:'ovPctYr10'},
+  {l:'Overage Discount %',k:'ovDisc'},
+  {l:'Overage GM %',k:'_ovgm',c:true},
+];
+const SKU_GROWTH=[
+  {l:'Dormant Subs %',k:'dorm'},
+  {l:'New User Growth %/mo',k:'grow'},
+  {l:'Retention (ann %)',k:'ret'},
+  {l:'Upsell (ann %)',k:'up'},
+];
+function buildSkuSection(rows,elId){
   let h='<div></div>';TIERS.forEach(t=>{h+=`<div class="hd" style="color:${TC[t]}">${t}</div>`;});
-  SROWS.forEach(r=>{
+  rows.forEach(r=>{
     h+=`<div class="rl">${r.l}</div>`;
     TIERS.forEach(t=>{
       if(r.c)h+=`<div class="cell"><span class="cv" id="cv_${r.k}_${t}">—</span></div>`;
       else h+=`<div class="cell"><input class="ni" type="number" id="sv_${t}_${r.k}" value="${S.skus[t][r.k]}" onchange="onEdit()"></div>`;
     });
-  });$('sku-grid').innerHTML=h;
+  });$(elId).innerHTML=h;
+}
+function buildSku(){
+  buildSkuSection(SKU_PRICING,'sku-pricing');
+  buildSkuSection(SKU_USAGE,'sku-usage');
+  buildSkuSection(SKU_GROWTH,'sku-growth');
 }
 
 function buildYrTabs(){
@@ -277,10 +295,9 @@ function onEdit(){
   Object.keys(S.rocks).forEach(k=>{const el=document.getElementById('rk_'+k);if(el){S.rocks[k].on=el.checked;const row=document.getElementById('rock-'+k);if(row){row.classList.toggle('on',el.checked);}}
     const moEl=document.getElementById('rk_mo_'+k);if(moEl&&moEl.value!==''){S.rocks[k].mo=Math.max(1,+moEl.value)*12;}// convert year to month
   });
-  TIERS.forEach(t=>{['p','ovDisc','ret','up','avgUse','avgUseGrow','dorm','grow'].forEach(k=>{const el=document.getElementById('sv_'+t+'_'+k);if(el&&el.value!==''){S.skus[t][k]=+el.value;}});});
+  TIERS.forEach(t=>{['p','eYr1','eGrow','avgUse','avgUseGrow','util','ovPctYr1','ovPctYr10','ovDisc','dorm','grow','ret','up'].forEach(k=>{const el=document.getElementById('sv_'+t+'_'+k);if(el&&el.value!==''){S.skus[t][k]=+el.value;}});});
   TIERS.forEach(t=>{
-    const re=document.getElementById('cv__ratio_'+t);if(re)re.textContent=(S.skus[t].eByYr[0]/S.skus[t].p).toFixed(1)+'×';
-    const ov1=document.getElementById('cv__ov1_'+t);if(ov1)ov1.textContent=S.skus[t].ovByYr[0]+'%';
+    const re=document.getElementById('cv__ratio_'+t);if(re)re.textContent=(S.skus[t].eYr1/S.skus[t].p).toFixed(1)+'×';
     const ov=document.getElementById('cv__ovgm_'+t);if(ov){const gm=(1-(1-S.provDisc/100)/(1-S.skus[t].ovDisc/100))*100;ov.textContent=gm.toFixed(0)+'%';ov.style.color=gm>=0?'var(--green)':'var(--red)';}
   });
   render();
@@ -318,7 +335,7 @@ function simulate(){
     // Dormant users stay on their tier, small churn
     pop[cur]+=Math.round(dm*0.95); m0c+=dm-Math.round(dm*0.95);
     const dist=userDist(cur,1000),w=act/1000;
-    dist.forEach(api=>{let bt=null,bc=1/0;TIERS.forEach(t=>{const s=S.skus[t],ov=Math.max(0,api-s.eByYr[0]),c=s.p+ov*(1-s.ovDisc/100);if(c<bc){bc=c;bt=t;}});
+    dist.forEach(api=>{let bt=null,bc=1/0;TIERS.forEach(t=>{const s=S.skus[t],ov=Math.max(0,api-s.eYr1),c=s.p+ov*(1-s.ovDisc/100);if(c<bc){bc=c;bt=t;}});
       const cp_=cur==="Pro"?10:39,inc=bc/cp_;let cp=0;if(inc>2)cp=Math.min(.5,.3);else if(inc>1.5)cp=(inc-1)*.2;else if(inc>1)cp=(inc-1)*.08;
       pop[bt]+=w*(1-cp);m0c+=w*cp;});
   });TIERS.forEach(t=>{pop[t]=Math.round(pop[t])});
@@ -351,16 +368,13 @@ function simulate(){
 
     // Snapshot: compute revenue/COGS for current user counts
     let tU=0,tSR=0,tOR=0,tC=0;
-    const ut=S.utilization/100;
     TIERS.forEach(t=>{
       const u=Math.round(cp[t]),s=S.skus[t];
       const ent=getE(t,m);
       const curOvPct=getOvPct(t,m);
       const wP=1-curOvPct, oP=curOvPct;
-      // avgUse grows over time: base + avgUseGrow per year
-      const curAvgUse=s.avgUse + s.avgUseGrow * yr;
-      // Within-ent users: consume ent*utilization
-      // Overage users: consume curAvgUse (which exceeds ent)
+      const curAvgUse=getAvgUse(t,yr);
+      const ut=getUtil(t);
       const withinCost=ent*ut;
       const overExcess=Math.max(0,curAvgUse-ent);
       const sr=u*s.p;
@@ -403,13 +417,11 @@ function simulate(){
     });
     tc+=Math.round(mcAll);R.crAll.push(tU>0?mcAll/tU*100:0);cp=np;
   }
-  const ut=S.utilization/100;
   TIERS.forEach(st=>{
     let p={"Pro":0,"Pro+":0,"Max":0,"Ultra":0};p[st]=1;const cum=[];let c=0;
     for(let m=0;m<120;m++){const ef=effAt(m);const lyr=Math.min(9,Math.floor(m/12));let mR=0,mC=0;
       TIERS.forEach(t=>{if(p[t]<.0001)return;const s=S.skus[t];
-        const ent=getE(t,m);const curOvPct=getOvPct(t,m);
-        const curAvgUse=s.avgUse+s.avgUseGrow*lyr;
+        const ent=getE(t,m);const curOvPct=getOvPct(t,m);const curAvgUse=getAvgUse(t,lyr);const ut=getUtil(t);
         const wP=1-curOvPct,overExcess=Math.max(0,curAvgUse-ent);
         mR+=p[t]*(s.p+curOvPct*overExcess*(1-s.ovDisc/100));
         mC+=p[t]*(wP*ent*ut+curOvPct*curAvgUse)*(1-pd)*ef;});
@@ -435,9 +447,8 @@ function gmByUsageForTier(tier, yearIdx){
   const monthInYear=yearIdx*12+6;
   const ef=effAt(monthInYear);
   const s=S.skus[tier];
-  const ent=s.eByYr[yearIdx];
-
-  const curAvgUse=s.avgUse+s.avgUseGrow*yearIdx;
+  const ent=getE(tier,monthInYear);
+  const curAvgUse=getAvgUse(tier,yearIdx);
   const usagePts=[];
   const maxX=Math.max(ent*3, curAvgUse*2, 200);
   const step=Math.max(1,Math.round(maxX/100));
@@ -458,7 +469,7 @@ function gmByUsageForTier(tier, yearIdx){
   // Filter to users whose optimal tier is this one
   const tierDist=allDist.filter(api=>{
     let bt=null,bc=1/0;
-    TIERS.forEach(t=>{const sk=S.skus[t],ov2=Math.max(0,api-sk.eByYr[yearIdx]),c=sk.p+ov2*(1-sk.ovDisc/100);if(c<bc){bc=c;bt=t;}});
+    TIERS.forEach(t=>{const sk=S.skus[t],ov2=Math.max(0,api-getE(t,yearIdx*12+6)),c=sk.p+ov2*(1-sk.ovDisc/100);if(c<bc){bc=c;bt=t;}});
     return bt===tier;
   });
 
@@ -599,23 +610,23 @@ function render(){
     :`Yr1: ${TIERS.map(t=>`${t} ${annGM[t][0].toFixed(0)}%`).join(', ')} — widen entitlement gaps between tiers`;
 
   // 4. Entitlement ratio: Ultra > Max > Pro+ > Pro
-  const r0=TIERS.map(t=>S.skus[t].eByYr[0]/S.skus[t].p);
+  const r0=TIERS.map(t=>S.skus[t].eYr1/S.skus[t].p);
   const p4=r0[3]>r0[2]&&r0[2]>r0[1]&&r0[1]>r0[0];
   const p4d=p4?`Yr1: U ${r0[3].toFixed(1)}× > M ${r0[2].toFixed(1)}× > P+ ${r0[1].toFixed(1)}× > P ${r0[0].toFixed(1)}×`
     :`Yr1: ${TIERS.map((t,i)=>`${t} ${r0[i].toFixed(1)}×`).join(', ')} — higher tiers should have more generous ratios`;
 
-  // 5. Entitlement/Price ratio increases over time
-  const p5fails=TIERS.filter(t=>{const r=S.skus[t].eByYr.map(e=>e/S.skus[t].p);return r[9]<r[0];});
+  // 5. Entitlement/Price ratio increases over time (eGrow > 0 for all)
+  const p5fails=TIERS.filter(t=>S.skus[t].eGrow<0);
   const p5=p5fails.length===0;
-  const p5d=p5?'All tiers: ratio stable or increasing':`${p5fails.join(', ')} declining — increase later-year entitlements`;
+  const p5d=p5?'All tiers: ratio growing (eGrow ≥ 0%)':`${p5fails.join(', ')} has negative entitlement growth`;
 
-  // 6. Overage increases over time
-  const p6fails=TIERS.filter(t=>S.skus[t].ovByYr[9]<S.skus[t].ovByYr[0]);
+  // 6. Overage increases over time (Yr10 > Yr1)
+  const p6fails=TIERS.filter(t=>S.skus[t].ovPctYr10<S.skus[t].ovPctYr1);
   const p6=p6fails.length===0;
-  const p6d=p6?'All tiers: overage % growing':`${p6fails.join(', ')} declining — increase overage growth rates`;
+  const p6d=p6?'All tiers: overage % growing':`${p6fails.join(', ')} declining`;
 
   // 7. Overage Ultra > Max > Pro+ > Pro
-  const ov0=TIERS.map(t=>S.skus[t].ovByYr[0]);
+  const ov0=TIERS.map(t=>S.skus[t].ovPctYr1);
   const p7=ov0[3]>ov0[2]&&ov0[2]>ov0[1]&&ov0[1]>ov0[0];
   const p7d=p7?`Yr1: U ${ov0[3]}% > M ${ov0[2]}% > P+ ${ov0[1]}% > P ${ov0[0]}%`
     :`Yr1: ${TIERS.map((t,i)=>`${t} ${ov0[i]}%`).join(', ')} — Ultra should have highest overage %`;
@@ -750,9 +761,12 @@ function render(){
   });
 
   // ── Assumptions Over Time charts ──
-  ch('a-ent','line',TIERS.map(t=>({label:t,data:S.skus[t].eByYr,borderColor:TC[t],...ln,pointRadius:3,_showLabels:true})),fm,{labels:YR_LABELS,maxX:10,labelFmt:v=>'$'+v});
-  ch('a-ratio','line',TIERS.map(t=>({label:t,data:S.skus[t].eByYr.map(e=>e/S.skus[t].p),borderColor:TC[t],...ln,pointRadius:3,_showLabels:true})),v=>v.toFixed(1)+'×',{labels:YR_LABELS,maxX:10,labelFmt:v=>v.toFixed(1)+'×'});
-  ch('a-ov','line',TIERS.map(t=>({label:t,data:S.skus[t].ovByYr,borderColor:TC[t],...ln,pointRadius:3,_showLabels:true})),v=>v+'%',{labels:YR_LABELS,maxX:10,labelFmt:v=>v.toFixed(0)+'%'});
+  // Compute arrays for charts
+  const entByYr={}; TIERS.forEach(t=>{entByYr[t]=YR_LABELS.map((_,y)=>getE(t,y*12));});
+  const ovByYr={}; TIERS.forEach(t=>{ovByYr[t]=YR_LABELS.map((_,y)=>getOvPct(t,y*12)*100);});
+  ch('a-ent','line',TIERS.map(t=>({label:t,data:entByYr[t],borderColor:TC[t],...ln,pointRadius:3,_showLabels:true})),fm,{labels:YR_LABELS,maxX:10,labelFmt:v=>'$'+Math.round(v)});
+  ch('a-ratio','line',TIERS.map(t=>({label:t,data:entByYr[t].map(e=>e/S.skus[t].p),borderColor:TC[t],...ln,pointRadius:3,_showLabels:true})),v=>v.toFixed(1)+'×',{labels:YR_LABELS,maxX:10,labelFmt:v=>v.toFixed(1)+'×'});
+  ch('a-ov','line',TIERS.map(t=>({label:t,data:ovByYr[t],borderColor:TC[t],...ln,pointRadius:3,_showLabels:true})),v=>v.toFixed(0)+'%',{labels:YR_LABELS,maxX:10,labelFmt:v=>v.toFixed(0)+'%'});
   ch('a-eff','line',[{label:'COGS Reduction %',data:YR_LABELS.map((_,y)=>((1-effAt(y*12+6))*100)),borderColor:'#4ade80',...ln,pointRadius:3,_showLabels:true}],v=>v.toFixed(0)+'%',{labels:YR_LABELS,maxX:10,labelFmt:v=>v.toFixed(0)+'%'});
 }
 

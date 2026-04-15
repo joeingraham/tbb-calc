@@ -1,0 +1,569 @@
+{
+  "sku_actuals": {
+    "Unknown": {
+      "avg_daily_users": 57404.2962962963,
+      "daily_cogs": 347830.541039154,
+      "daily_requests": 19437486.85185185,
+      "daily_output_tokens": 4185307001.814815,
+      "daily_input_tokens": 523422238595.0,
+      "daily_cached_tokens": 428883359966.1111,
+      "cogs_per_user_day": 6.059311993719116,
+      "requests_per_user_day": 338.60683095083857,
+      "tokens_per_user_day": 9191081.149632625
+    },
+    "Business": {
+      "avg_daily_users": 1129497.0,
+      "daily_cogs": 4669045.035385913,
+      "daily_requests": 373507931.5555556,
+      "daily_output_tokens": 69704061582.62962,
+      "daily_input_tokens": 7926745195820.814,
+      "daily_cached_tokens": 6278709162235.481,
+      "cogs_per_user_day": 4.133738323683828,
+      "requests_per_user_day": 330.6851913334481,
+      "tokens_per_user_day": 7079655.153934401
+    },
+    "Edu": {
+      "avg_daily_users": 251575.44444444444,
+      "daily_cogs": 579525.9086466808,
+      "daily_requests": 118359670.22222222,
+      "daily_output_tokens": 13277704349.555555,
+      "daily_input_tokens": 1869964340698.5557,
+      "daily_cached_tokens": 1530054036917.1482,
+      "cogs_per_user_day": 2.3035869415890384,
+      "requests_per_user_day": 470.47385917809504,
+      "tokens_per_user_day": 7485794.367597703
+    },
+    "Pro": {
+      "avg_daily_users": 333200.6296296296,
+      "daily_cogs": 1969600.723159633,
+      "daily_requests": 188323263.66666666,
+      "daily_output_tokens": 37494340357.296295,
+      "daily_input_tokens": 4075944665959.185,
+      "daily_cached_tokens": 3369869067847.7407,
+      "cogs_per_user_day": 5.911155466149479,
+      "requests_per_user_day": 565.1948013303519,
+      "tokens_per_user_day": 12345231.792895438
+    },
+    "Other": {
+      "avg_daily_users": 9648.74074074074,
+      "daily_cogs": 36795.42788093102,
+      "daily_requests": 4756297.111111111,
+      "daily_output_tokens": 688975588.5925926,
+      "daily_input_tokens": 76200691571.77777,
+      "daily_cached_tokens": 61969429302.703705,
+      "cogs_per_user_day": 3.813495343031282,
+      "requests_per_user_day": 492.9448555942821,
+      "tokens_per_user_day": 7968881.041202844
+    },
+    "Pro+": {
+      "avg_daily_users": 76558.07407407407,
+      "daily_cogs": 1767676.7163958433,
+      "daily_requests": 58842395.59259259,
+      "daily_output_tokens": 23006153203.185184,
+      "daily_input_tokens": 2694581043905.1113,
+      "daily_cached_tokens": 2337891635220.185,
+      "cogs_per_user_day": 23.08935716806983,
+      "requests_per_user_day": 768.5981694845066,
+      "tokens_per_user_day": 35497068.46698996
+    },
+    "NO_AUTH_LIMITED_COPILOT": {
+      "avg_daily_users": 1.0,
+      "daily_cogs": 2748.121216440481,
+      "daily_requests": 11639675.370370371,
+      "daily_output_tokens": 194865781.5185185,
+      "daily_input_tokens": 40976276800.92593,
+      "daily_cached_tokens": 21297948752.555557,
+      "cogs_per_user_day": 2748.121216440481,
+      "requests_per_user_day": 11639675.370370371,
+      "tokens_per_user_day": 41171142582.44444
+    },
+    "Enterprise": {
+      "avg_daily_users": 112836.4074074074,
+      "daily_cogs": 792152.5527292662,
+      "daily_requests": 32704918.703703705,
+      "daily_output_tokens": 9224024410.333334,
+      "daily_input_tokens": 1039876671359.5555,
+      "daily_cached_tokens": 852794826341.6666,
+      "cogs_per_user_day": 7.020363116215836,
+      "requests_per_user_day": 289.84367240281983,
+      "tokens_per_user_day": 9297537.203413464
+    },
+    "Free": {
+      "avg_daily_users": 680071.8888888889,
+      "daily_cogs": 164751.5111427386,
+      "daily_requests": 308595805.9259259,
+      "daily_output_tokens": 10919638095.88889,
+      "daily_input_tokens": 1629907271618.2964,
+      "daily_cached_tokens": 1071116493377.4445,
+      "cogs_per_user_day": 0.2422560229800293,
+      "requests_per_user_day": 453.76938963043176,
+      "tokens_per_user_day": 2412725.6787440395
+    },
+    "Missing": {
+      "avg_daily_users": 9.222222222222221,
+      "daily_cogs": 131411.33378279823,
+      "daily_requests": 47413911.88888889,
+      "daily_output_tokens": 1828510471.5555556,
+      "daily_input_tokens": 582385717834.3334,
+      "daily_cached_tokens": 63979802700.703705,
+      "cogs_per_user_day": 14249.421735484148,
+      "requests_per_user_day": 5141267.554216868,
+      "tokens_per_user_day": 63348530780.15663
+    },
+    "INVALID": {
+      "avg_daily_users": 24559.814814814814,
+      "daily_cogs": 1650.4925555176078,
+      "daily_requests": 177844.59259259258,
+      "daily_output_tokens": 91644958.25925925,
+      "daily_input_tokens": 5456392157.444445,
+      "daily_cached_tokens": 3938735644.148148,
+      "cogs_per_user_day": 0.06720297233357021,
+      "requests_per_user_day": 7.241283940191369,
+      "tokens_per_user_day": 225898.98000196047
+    },
+    "FREE_CAMPUS_EXPERT_QUOTA": {
+      "avg_daily_users": 11.333333333333334,
+      "daily_cogs": 30.42019258637833,
+      "daily_requests": 1183.3333333333333,
+      "daily_output_tokens": 750246.3333333334,
+      "daily_input_tokens": 64494197.666666664,
+      "daily_cached_tokens": 58154153.0,
+      "cogs_per_user_day": 2.6841346399745585,
+      "requests_per_user_day": 104.41176470588233,
+      "tokens_per_user_day": 5756862.705882353
+    },
+    "MAX_MONTHLY_SUBSCRIBER_QUOTA": {
+      "avg_daily_users": 1.3333333333333333,
+      "daily_cogs": 3.888087596855953,
+      "daily_requests": 47.666666666666664,
+      "daily_output_tokens": 38966.333333333336,
+      "daily_input_tokens": 2650040.3333333335,
+      "daily_cached_tokens": 2343526.0,
+      "cogs_per_user_day": 2.916065697641965,
+      "requests_per_user_day": 35.75,
+      "tokens_per_user_day": 2016755.0
+    },
+    "MAX_YEARLY_SUBSCRIBER_QUOTA": {
+      "avg_daily_users": 1.0,
+      "daily_cogs": 0.01137567151850757,
+      "daily_requests": 8.0,
+      "daily_output_tokens": 348.0,
+      "daily_input_tokens": 63276.0,
+      "daily_cached_tokens": 61952.0,
+      "cogs_per_user_day": 0.01137567151850757,
+      "requests_per_user_day": 8.0,
+      "tokens_per_user_day": 63624.0
+    }
+  },
+  "rev_actuals": {
+    "Other": {
+      "seat_rev_daily": 8.40708846153812,
+      "overage_rev_daily": 415227.5252266313,
+      "total_users": 5106592
+    },
+    "Business": {
+      "seat_rev_daily": 2004257.112488434,
+      "overage_rev_daily": 0,
+      "total_users": 3488960
+    },
+    "Enterprise": {
+      "seat_rev_daily": 455013.90839406964,
+      "overage_rev_daily": 0,
+      "total_users": 413188
+    },
+    "Free": {
+      "seat_rev_daily": 583481.5338434986,
+      "overage_rev_daily": 0,
+      "total_users": 1003436
+    },
+    "Pro": {
+      "seat_rev_daily": 296032.9422253168,
+      "overage_rev_daily": 0,
+      "total_users": 1071080
+    },
+    "Pro+": {
+      "seat_rev_daily": 160028.70058859777,
+      "overage_rev_daily": 0,
+      "total_users": 155113
+    }
+  },
+  "pru_distribution": {
+    "Pro": {
+      "user_count": 942226,
+      "zero_usage_pct": 0.8303740291607322,
+      "mean_pru_28d": 203.4020305213399,
+      "median_pru_28d": 86.605,
+      "percentiles": {
+        "p0": 0.0,
+        "p10": 3.63,
+        "p25": 20.0,
+        "p50": 86.605,
+        "p75": 229.0,
+        "p90": 405.125,
+        "p95": 604.4975,
+        "p99": 2176.0,
+        "p100": 217475.66
+      },
+      "pct_with_overage": 15.916139015480363,
+      "mean_overage_28d": 36.69371201813578
+    },
+    "Pro+": {
+      "user_count": 143442,
+      "zero_usage_pct": 0.22099524546506602,
+      "mean_pru_28d": 1219.9888531950194,
+      "median_pru_28d": 604.0,
+      "percentiles": {
+        "p0": 0.0,
+        "p10": 43.25200000000001,
+        "p25": 192.91750000000002,
+        "p50": 604.0,
+        "p75": 1275.0,
+        "p90": 2259.9350000000013,
+        "p95": 3578.9834999999944,
+        "p99": 10926.785999999982,
+        "p100": 929758.3200000001
+      },
+      "pct_with_overage": 18.647258125235286,
+      "mean_overage_28d": 252.94365917931987
+    }
+  },
+  "interaction_types": {
+    "UNKNOWN_INTERACTION_TYPE": {
+      "daily_cogs": 2008199.4390456944,
+      "daily_users": 2127031.296296296,
+      "daily_requests": 935225092.8888888,
+      "cogs_per_request": 0.002147289945827279,
+      "share_of_cogs": 19.192983904574554
+    },
+    "categorized_subagent": {
+      "daily_cogs": 432669.693781233,
+      "daily_users": 323350.55555555556,
+      "daily_requests": 20340911.555555556,
+      "cogs_per_request": 0.0212709097426394,
+      "share_of_cogs": 4.135158245381549
+    },
+    "categorized_background": {
+      "daily_cogs": 24660.785899412218,
+      "daily_users": 51649.62962962963,
+      "daily_requests": 262011.37037037036,
+      "cogs_per_request": 0.094121052321327,
+      "share_of_cogs": 0.23569076738040462
+    },
+    "categorized_user_interaction": {
+      "daily_cogs": 402139.7298470434,
+      "daily_users": 1647202.4814814816,
+      "daily_requests": 17421046.48148148,
+      "cogs_per_request": 0.023083557596526517,
+      "share_of_cogs": 3.843373926053886
+    },
+    "categorized_agent": {
+      "daily_cogs": 7595525.907835384,
+      "daily_users": 1679047.111111111,
+      "daily_requests": 190510407.74074075,
+      "cogs_per_request": 0.03986934886083432,
+      "share_of_cogs": 72.59279315660962
+    }
+  },
+  "model_mix": {
+    "claude-opus-4.6": {
+      "daily_cogs": 4218623.419733635,
+      "cogs_per_request": 0.06489100461924281,
+      "cogs_per_mtokens": 0.8733706503402158,
+      "cache_hit_rate": 86.00612454105352,
+      "daily_requests": 65010912.44444445,
+      "share_of_cogs": 40.078561422483915
+    },
+    "claude-sonnet-4.6": {
+      "daily_cogs": 2095697.987385961,
+      "cogs_per_request": 0.04021010026524359,
+      "cogs_per_mtokens": 0.5617377294782651,
+      "cache_hit_rate": 85.03565902760904,
+      "daily_requests": 52118695.88888889,
+      "share_of_cogs": 19.90994505874323
+    },
+    "gpt-5.3-codex": {
+      "daily_cogs": 886030.3448020242,
+      "cogs_per_request": 0.03224611116369536,
+      "cogs_per_mtokens": 0.376954183368123,
+      "cache_hit_rate": 89.70474435941222,
+      "daily_requests": 27477122.444444444,
+      "share_of_cogs": 8.417632498369501
+    },
+    "gpt-5.4": {
+      "daily_cogs": 806572.4456956704,
+      "cogs_per_request": 0.04535733660536735,
+      "cogs_per_mtokens": 0.4532417219221467,
+      "cache_hit_rate": 88.62084263978598,
+      "daily_requests": 17782623.62962963,
+      "share_of_cogs": 7.662751587468806
+    },
+    "claude-sonnet-4.5": {
+      "daily_cogs": 517181.3138997127,
+      "cogs_per_request": 0.04330264688105496,
+      "cogs_per_mtokens": 0.6918920584343743,
+      "cache_hit_rate": 78.06865792373863,
+      "daily_requests": 11943411.111111112,
+      "share_of_cogs": 4.913423406965141
+    },
+    "claude-opus-4.6-fast": {
+      "daily_cogs": 283526.5856528,
+      "cogs_per_request": 0.304222359537344,
+      "cogs_per_mtokens": 4.180290891637127,
+      "cache_hit_rate": 91.47491259077368,
+      "daily_requests": 931971.5555555555,
+      "share_of_cogs": 2.693612713767747
+    },
+    "claude-haiku-4.5": {
+      "daily_cogs": 272969.94180016586,
+      "cogs_per_request": 0.009727962746013084,
+      "cogs_per_mtokens": 0.18709656266400404,
+      "cache_hit_rate": 86.23129476401887,
+      "daily_requests": 28060339.962962963,
+      "share_of_cogs": 2.5933204959120473
+    },
+    "claude-opus-4.5": {
+      "daily_cogs": 253035.72496712222,
+      "cogs_per_request": 0.06249746216278913,
+      "cogs_per_mtokens": 0.8962154728927759,
+      "cache_hit_rate": 85.14954716933664,
+      "daily_requests": 4048736.0,
+      "share_of_cogs": 2.4039376915557633
+    },
+    "gemini-3.1-pro-preview": {
+      "daily_cogs": 179639.9015333036,
+      "cogs_per_request": 0.05715682279453445,
+      "cogs_per_mtokens": 1.2085955395058587,
+      "cache_hit_rate": 78.07541759413174,
+      "daily_requests": 3142930.1481481483,
+      "share_of_cogs": 1.706648854660287
+    },
+    "gpt-4.1-mini-proxy": {
+      "daily_cogs": 153571.77256773307,
+      "cogs_per_request": 0.0003366295594670087,
+      "cogs_per_mtokens": 0.09496756973833564,
+      "cache_hit_rate": 56.04296485423285,
+      "daily_requests": 456204062.4444444,
+      "share_of_cogs": 1.4589915020204018
+    },
+    "gpt-5.2": {
+      "daily_cogs": 147975.55218962004,
+      "cogs_per_request": 0.02009355825514993,
+      "cogs_per_mtokens": 0.38946901029094627,
+      "cache_hit_rate": 87.39798948951793,
+      "daily_requests": 7364327.925925926,
+      "share_of_cogs": 1.4058252342969555
+    },
+    "copilot-nes-xtab": {
+      "daily_cogs": 134637.0980501714,
+      "cogs_per_request": 0.0009887453278151928,
+      "cogs_per_mtokens": 0.26277365905747957,
+      "cache_hit_rate": 26.932861145585562,
+      "daily_requests": 136169642.74074075,
+      "share_of_cogs": 1.2791047379833425
+    },
+    "claude-sonnet-4": {
+      "daily_cogs": 76289.518382992,
+      "cogs_per_request": 0.03359161705006235,
+      "cogs_per_mtokens": 0.5732952829618148,
+      "cache_hit_rate": 83.76185394523259,
+      "daily_requests": 2271088.0,
+      "share_of_cogs": 0.7247800631129849
+    },
+    "gpt-4.1": {
+      "daily_cogs": 55363.68797286842,
+      "cogs_per_request": 0.005858950641297599,
+      "cogs_per_mtokens": 0.211944880908769,
+      "cache_hit_rate": 77.59193736677027,
+      "daily_requests": 9449420.444444444,
+      "share_of_cogs": 0.5259765445326103
+    },
+    "gemini-3-pro-preview": {
+      "daily_cogs": 87262.07195657078,
+      "cogs_per_request": 0.16769222458410601,
+      "cogs_per_mtokens": 3.8742195653510736,
+      "cache_hit_rate": 78.32358548319955,
+      "daily_requests": 520370.4117647059,
+      "share_of_cogs": 0.8290235848985676
+    },
+    "goldeneye-free-auto": {
+      "daily_cogs": 79506.15499541315,
+      "cogs_per_request": 0.16790249004675858,
+      "cogs_per_mtokens": 1.6256154507441007,
+      "cache_hit_rate": 91.10832608867298,
+      "daily_requests": 473525.76470588235,
+      "share_of_cogs": 0.7553393605941694
+    },
+    "gpt-4o-mini": {
+      "daily_cogs": 44395.76250280476,
+      "cogs_per_request": 0.0003387656365952109,
+      "cogs_per_mtokens": 0.06859708974069174,
+      "cache_hit_rate": 16.693391493298908,
+      "daily_requests": 131051552.18518518,
+      "share_of_cogs": 0.4217769915284392
+    },
+    "oswe-vscode-prime": {
+      "daily_cogs": 30985.86836247091,
+      "cogs_per_request": 0.009655391106407306,
+      "cogs_per_mtokens": 0.1883357243514438,
+      "cache_hit_rate": 90.8815686855698,
+      "daily_requests": 3209177.962962963,
+      "share_of_cogs": 0.29437778745197957
+    },
+    "cursor-jump": {
+      "daily_cogs": 29529.39760205288,
+      "cogs_per_request": 0.0005030586869458422,
+      "cogs_per_mtokens": 0.13403165970991218,
+      "cache_hit_rate": 21.782356316910974,
+      "daily_requests": 58699707.14814815,
+      "share_of_cogs": 0.2805407493891815
+    },
+    "gpt-4o": {
+      "daily_cogs": 27893.320747450533,
+      "cogs_per_request": 0.024069538478125926,
+      "cogs_per_mtokens": 1.7304917358541352,
+      "cache_hit_rate": 70.81810532377787,
+      "daily_requests": 1158863.962962963,
+      "share_of_cogs": 0.2649973836546726
+    },
+    "gpt-5.4-mini": {
+      "daily_cogs": 23438.817254614998,
+      "cogs_per_request": 0.011428622151542079,
+      "cogs_per_mtokens": 0.15996674199424163,
+      "cache_hit_rate": 83.82964593889108,
+      "daily_requests": 2050887.4074074074,
+      "share_of_cogs": 0.22267786989832256
+    },
+    "gpt-5.2-codex": {
+      "daily_cogs": 21450.44453128111,
+      "cogs_per_request": 0.026975249346212034,
+      "cogs_per_mtokens": 0.34749283202882614,
+      "cache_hit_rate": 86.10898415708483,
+      "daily_requests": 795189.8518518518,
+      "share_of_cogs": 0.20378755654393443
+    },
+    "gpt-5.1": {
+      "daily_cogs": 20988.936291803795,
+      "cogs_per_request": 0.014606249694671627,
+      "cogs_per_mtokens": 1.0393954008123516,
+      "cache_hit_rate": 61.40626437772827,
+      "daily_requests": 1436983.2592592593,
+      "share_of_cogs": 0.19940304897296904
+    },
+    "gpt-5-mini": {
+      "daily_cogs": 20446.27246652871,
+      "cogs_per_request": 0.0030225843439786087,
+      "cogs_per_mtokens": 0.07408708543442845,
+      "cache_hit_rate": 79.23947028407026,
+      "daily_requests": 6764500.222222222,
+      "share_of_cogs": 0.1942475318079833
+    },
+    "Gemini 2.5 Pro": {
+      "daily_cogs": 20003.907932641432,
+      "cogs_per_request": 0.09795762241291749,
+      "cogs_per_mtokens": 2.80330245875658,
+      "cache_hit_rate": 61.97499422053615,
+      "daily_requests": 204209.8148148148,
+      "share_of_cogs": 0.19004489687745205
+    },
+    "gemini-3-flash-preview": {
+      "daily_cogs": 17541.900132931038,
+      "cogs_per_request": 0.007580918533226637,
+      "cogs_per_mtokens": 0.3670213720768922,
+      "cache_hit_rate": 67.83295597443451,
+      "daily_requests": 2313954.4444444445,
+      "share_of_cogs": 0.16665486629028062
+    },
+    "grok-code-fast-1": {
+      "daily_cogs": 8593.057461615555,
+      "cogs_per_request": 0.0018732734285656174,
+      "cogs_per_mtokens": 0.045695017130131826,
+      "cache_hit_rate": 90.72965015199593,
+      "daily_requests": 4587188.037037037,
+      "share_of_cogs": 0.08163738428779643
+    },
+    "gpt-5.1-codex-max": {
+      "daily_cogs": 4660.807473110185,
+      "cogs_per_request": 0.02051051976635146,
+      "cogs_per_mtokens": 0.4085725737352757,
+      "cache_hit_rate": 77.3662626645839,
+      "daily_requests": 227239.85185185185,
+      "share_of_cogs": 0.04427948171804657
+    },
+    "qwen3-edits-nes": {
+      "daily_cogs": 3827.7398316642216,
+      "cogs_per_request": 3.17765072740576e-05,
+      "cogs_per_mtokens": 0.00948958646189362,
+      "cache_hit_rate": 38.733957435793684,
+      "daily_requests": 120458167.37037037,
+      "share_of_cogs": 0.03636501547756758
+    },
+    "gpt-5.1-codex": {
+      "daily_cogs": 2863.726495119737,
+      "cogs_per_request": 0.014824236466994697,
+      "cogs_per_mtokens": 0.28783656965464915,
+      "cache_hit_rate": 84.55495265224475,
+      "daily_requests": 193178.68421052632,
+      "share_of_cogs": 0.027206514261255827
+    },
+    "claude-opus-4.6-1m": {
+      "daily_cogs": 1050.715401088889,
+      "cogs_per_request": 0.026906388576127382,
+      "cogs_per_mtokens": 0.8335515724141769,
+      "cache_hit_rate": 89.20117670975237,
+      "daily_requests": 39050.77777777778,
+      "share_of_cogs": 0.009982204513231894
+    },
+    "gpt-5.1-codex-mini": {
+      "daily_cogs": 268.27508801763156,
+      "cogs_per_request": 0.002886514496111278,
+      "cogs_per_mtokens": 0.057227023077249944,
+      "cache_hit_rate": 83.63175357248626,
+      "daily_requests": 92940.84210526316,
+      "share_of_cogs": 0.0025487175610274817
+    },
+    "qwen3-4b-instant-apply": {
+      "daily_cogs": 62.86505024444445,
+      "cogs_per_request": 0.0004987152350932493,
+      "cogs_per_mtokens": 0.11394904165791729,
+      "cache_hit_rate": 19.68979920689449,
+      "daily_requests": 126054.0,
+      "share_of_cogs": 0.0005972424003914975
+    }
+  },
+  "dau_by_sku": {
+    "Copilot Individual": 1726959.5,
+    "Copilot Business": 803458.0,
+    "Copilot Standalone": 208730.33333333334,
+    "Copilot Enterprise": 114371.83333333333,
+    "": 4738.333333333333
+  },
+  "arr_by_product": {
+    "Copilot Standalone": {
+      "arr": 106083.12461766157,
+      "seats": 465.27686235816475,
+      "arr_per_seat_month": 19.0
+    },
+    "Copilot Enterprise": {
+      "arr": 19282.967193480967,
+      "seats": 42.233567386046076,
+      "arr_per_seat_month": 38.048264265760395
+    },
+    "Copilot for Business": {
+      "arr": 6624.466744168249,
+      "seats": 29.578279312832997,
+      "arr_per_seat_month": 18.663658203668508
+    },
+    "Copilot Pro Plus": {
+      "arr": 455.9414007810773,
+      "seats": NaN,
+      "arr_per_seat_month": 0
+    },
+    "Copilot for Individuals": {
+      "arr": 115.62320533096766,
+      "seats": NaN,
+      "arr_per_seat_month": 0
+    }
+  },
+  "generated_at": "2026-04-13T15:12:38.567598",
+  "data_window": "trailing 28 days"
+}
