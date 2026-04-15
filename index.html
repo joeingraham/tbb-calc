@@ -90,6 +90,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .toggle .slider:before{content:"";position:absolute;height:14px;width:14px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
 .toggle input:checked+.slider{background:var(--green)}
 .toggle input:checked+.slider:before{transform:translateX(16px)}
+.rock-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;padding:8px 10px;background:var(--card2);border-radius:6px;border:1px solid var(--bd)}
+.rock-row.on{border-color:var(--green)}
+.rock-info{flex:1;min-width:0}
+.rock-name{font-size:11px;font-weight:600;color:var(--tx)}
+.rock-meta{display:flex;gap:6px;align-items:center;margin-top:3px;font-size:10px;color:var(--tx3)}
+.rock-impact{font-size:12px;font-weight:700;color:var(--green);text-align:right;min-width:36px;flex-shrink:0}
 .mini-tab{padding:3px 8px;border-radius:4px;font-size:9px;font-weight:600;cursor:pointer;border:1px solid var(--bd);background:var(--card2);color:var(--tx3);font-family:inherit}
 .mini-tab:hover{border-color:var(--accent)}
 .mini-tab.on{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -104,7 +110,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   <div class="sb-section"><div class="sb-hd">Pricing & Entitlements</div><div class="sku-grid" id="sku-pricing"></div></div>
   <div class="sb-section"><div class="sb-hd">Usage & Overage</div><div class="sku-grid" id="sku-usage"></div></div>
   <div class="sb-section"><div class="sb-hd">Growth & Retention</div><div class="sku-grid" id="sku-growth"></div></div>
-  <div class="sb-section"><div class="sb-hd">Efficiency Big Rocks</div><div class="sku-grid" id="rocks-grid" style="grid-template-columns:auto auto auto 1fr"></div></div>
+  <div class="sb-section"><div class="sb-hd">Efficiency Big Rocks</div><div id="rocks-grid"></div></div>
 </div>
 <!-- ═══ MAIN (right) ═══ -->
 <div class="main">
@@ -223,13 +229,20 @@ function buildGlobs(){
 }
 
 function buildRocks(){
-  let h=`<div class="rl" style="font-weight:600">On</div><div class="rl" style="font-weight:600">Initiative</div><div class="rl" style="font-weight:600">Savings</div><div class="rl" style="font-weight:600">Year</div>`;
+  let h='';
   Object.entries(S.rocks).forEach(([k,r])=>{
     const yr=Math.ceil(r.mo/12);
-    h+=`<div class="cell"><label class="toggle"><input type="checkbox" id="rk_${k}" ${r.on?'checked':''} onchange="onEdit()"><span class="slider"></span></label></div>`;
-    h+=`<div class="cell"><input class="ni" type="text" id="rk_nm_${k}" value="${r.label}" onchange="onEdit()" style="width:100%;text-align:left;font-weight:500;font-size:11px"></div>`;
-    h+=`<div class="cell"><input class="ni" type="number" id="rk_pct_${k}" value="${r.pct}" onchange="onEdit()" style="width:40px">%</div>`;
-    h+=`<div class="cell"><input class="ni" type="number" id="rk_mo_${k}" value="${yr}" min="1" max="10" onchange="onEdit()" style="width:36px"></div>`;
+    h+=`<div class="rock-row ${r.on?'on':''}" id="rock-${k}">
+      <label class="toggle"><input type="checkbox" id="rk_${k}" ${r.on?'checked':''} onchange="onEdit()"><span class="slider"></span></label>
+      <div class="rock-info">
+        <input type="text" id="rk_nm_${k}" value="${r.label}" onchange="onEdit()" style="background:transparent;border:none;color:var(--tx);font-size:11px;font-weight:600;width:100%;padding:0;font-family:inherit">
+        <div class="rock-meta">
+          <span>Savings</span><input class="ni" type="number" id="rk_pct_${k}" value="${r.pct}" onchange="onEdit()" style="width:36px;font-size:10px;padding:2px 4px">%
+          <span style="margin-left:4px">Year</span><input class="ni" type="number" id="rk_mo_${k}" value="${yr}" min="1" max="10" onchange="onEdit()" style="width:30px;font-size:10px;padding:2px 4px">
+        </div>
+      </div>
+      <div class="rock-impact">-${r.pct}%</div>
+    </div>`;
   });
   $('rocks-grid').innerHTML=h;
 }
