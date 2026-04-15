@@ -11,10 +11,10 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--tx);height:100vh;overflow:hidden}
 
-.app{display:grid;grid-template-columns:360px 1fr;height:100vh}
+.app{display:grid;grid-template-columns:400px 1fr;height:100vh}
 
 /* ─ LEFT: sidebar ─ */
-.sidebar{background:var(--card);border-right:1px solid var(--bd);overflow-y:auto;padding:16px 18px;scrollbar-width:thin}
+.sidebar{background:var(--card);border-right:1px solid var(--bd);overflow-y:auto;padding:16px 20px;scrollbar-width:thin}
 .sidebar::-webkit-scrollbar{width:6px}
 .sidebar::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px}
 
@@ -84,18 +84,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .gm-target-cell .pct{font-size:11px;color:var(--tx3)}
 
 /* Toggle switch */
-.rock-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:6px 8px;background:var(--card2);border-radius:6px;border:1px solid var(--bd)}
-.rock-row.on{border-color:var(--green)}
 .toggle{position:relative;width:36px;height:20px;flex-shrink:0}
 .toggle input{opacity:0;width:0;height:0}
 .toggle .slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--bd);border-radius:10px;transition:.2s}
 .toggle .slider:before{content:"";position:absolute;height:14px;width:14px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
 .toggle input:checked+.slider{background:var(--green)}
 .toggle input:checked+.slider:before{transform:translateX(16px)}
-.rock-info{flex:1;min-width:0}
-.rock-name{font-size:11px;font-weight:600;color:var(--tx)}
-.rock-detail{font-size:10px;color:var(--tx3)}
-.rock-impact{font-size:11px;font-weight:700;color:var(--green);text-align:right;min-width:40px}
 .mini-tab{padding:3px 8px;border-radius:4px;font-size:9px;font-weight:600;cursor:pointer;border:1px solid var(--bd);background:var(--card2);color:var(--tx3);font-family:inherit}
 .mini-tab:hover{border-color:var(--accent)}
 .mini-tab.on{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -106,11 +100,11 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 <!-- ═══ SIDEBAR (left) ═══ -->
 <div class="sidebar">
   <div class="sb-title">⚙️ Assumptions</div>
-  <div class="sb-section"><div class="sb-hd">Global</div><div id="g-grid"></div></div>
-  <div class="sb-section"><div class="sb-hd">Efficiency Big Rocks</div><div id="rocks-grid"></div></div>
+  <div class="sb-section"><div class="sb-hd">Global</div><div class="sku-grid" id="g-grid" style="grid-template-columns:auto 1fr"></div></div>
   <div class="sb-section"><div class="sb-hd">Pricing & Entitlements</div><div class="sku-grid" id="sku-pricing"></div></div>
   <div class="sb-section"><div class="sb-hd">Usage & Overage</div><div class="sku-grid" id="sku-usage"></div></div>
   <div class="sb-section"><div class="sb-hd">Growth & Retention</div><div class="sku-grid" id="sku-growth"></div></div>
+  <div class="sb-section"><div class="sb-hd">Efficiency Big Rocks</div><div class="sku-grid" id="rocks-grid" style="grid-template-columns:auto auto auto 1fr"></div></div>
 </div>
 <!-- ═══ MAIN (right) ═══ -->
 <div class="main">
@@ -218,30 +212,24 @@ function getUtil(t){return S.skus[t].util/100;}
 
 /* ══ BUILD UI ══ */
 const GLOBS=[
-  {key:'provDisc',label:'Provider Discount',min:10,max:60,suf:'%'},
-  {key:'cogsImprove',label:'Monthly COGS Improve',min:0,max:3,suf:'%',step:.1,dec:1},
-  {key:'wacc',label:'Discount Rate (WACC)',min:5,max:25,suf:'%'},
+  {key:'provDisc',label:'Provider Discount %',suf:'%'},
+  {key:'cogsImprove',label:'Monthly COGS Improve %',suf:'%'},
+  {key:'wacc',label:'Discount Rate (WACC) %',suf:'%'},
 ];
 function buildGlobs(){
   let h='';GLOBS.forEach(g=>{
-    const v=g.dec?S[g.key].toFixed(g.dec):S[g.key];const st=g.step?`step="${g.step}"`:'';
-    h+=`<div class="field"><span class="lbl">${g.label}</span><input type="range" id="g_${g.key}" min="${g.min}" max="${g.max}" value="${S[g.key]}" ${st} oninput="onEdit()"><span class="val" id="gv_${g.key}">${v}${g.suf}</span></div>`;
+    h+=`<div class="rl">${g.label}</div><div class="cell"><input class="ni" type="number" id="g_${g.key}" value="${S[g.key]}" onchange="onEdit()" style="width:56px"></div>`;
   });$('g-grid').innerHTML=h;
 }
 
 function buildRocks(){
-  let h='';
+  let h=`<div class="rl" style="font-weight:600">On</div><div class="rl" style="font-weight:600">Initiative</div><div class="rl" style="font-weight:600">Savings</div><div class="rl" style="font-weight:600">Year</div>`;
   Object.entries(S.rocks).forEach(([k,r])=>{
     const yr=Math.ceil(r.mo/12);
-    h+=`<div class="rock-row ${r.on?'on':''}" id="rock-${k}">
-      <label class="toggle"><input type="checkbox" id="rk_${k}" ${r.on?'checked':''} onchange="onEdit()"><span class="slider"></span></label>
-      <div class="rock-info"><div class="rock-name">${r.label}</div><div class="rock-detail">${r.desc}</div></div>
-      <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
-        <span style="font-size:9px;color:var(--tx3)">Yr</span>
-        <input type="number" class="ni" id="rk_mo_${k}" value="${yr}" min="1" max="10" style="width:36px;font-size:11px;padding:3px" onchange="onEdit()">
-        <span class="rock-impact">-${r.pct}%</span>
-      </div>
-    </div>`;
+    h+=`<div class="cell"><label class="toggle"><input type="checkbox" id="rk_${k}" ${r.on?'checked':''} onchange="onEdit()"><span class="slider"></span></label></div>`;
+    h+=`<div class="cell"><input class="ni" type="text" id="rk_nm_${k}" value="${r.label}" onchange="onEdit()" style="width:100%;text-align:left;font-weight:500;font-size:11px"></div>`;
+    h+=`<div class="cell"><input class="ni" type="number" id="rk_pct_${k}" value="${r.pct}" onchange="onEdit()" style="width:40px">%</div>`;
+    h+=`<div class="cell"><input class="ni" type="number" id="rk_mo_${k}" value="${yr}" min="1" max="10" onchange="onEdit()" style="width:36px"></div>`;
   });
   $('rocks-grid').innerHTML=h;
 }
@@ -290,10 +278,13 @@ function buildYrTabs(){
 }
 
 function onEdit(){
-  GLOBS.forEach(g=>{const el=document.getElementById('g_'+g.key);if(el){S[g.key]=+el.value;const lbl=document.getElementById('gv_'+g.key);if(lbl)lbl.textContent=(g.dec?(+el.value).toFixed(g.dec):el.value)+g.suf;}});
-  // Read rocks (toggle + year)
-  Object.keys(S.rocks).forEach(k=>{const el=document.getElementById('rk_'+k);if(el){S.rocks[k].on=el.checked;const row=document.getElementById('rock-'+k);if(row){row.classList.toggle('on',el.checked);}}
-    const moEl=document.getElementById('rk_mo_'+k);if(moEl&&moEl.value!==''){S.rocks[k].mo=Math.max(1,+moEl.value)*12;}// convert year to month
+  GLOBS.forEach(g=>{const el=document.getElementById('g_'+g.key);if(el&&el.value!==''){S[g.key]=+el.value;}});
+  // Read rocks (toggle + name + pct + year)
+  Object.keys(S.rocks).forEach(k=>{
+    const el=document.getElementById('rk_'+k);if(el)S.rocks[k].on=el.checked;
+    const nm=document.getElementById('rk_nm_'+k);if(nm)S.rocks[k].label=nm.value;
+    const pct=document.getElementById('rk_pct_'+k);if(pct&&pct.value!=='')S.rocks[k].pct=+pct.value;
+    const moEl=document.getElementById('rk_mo_'+k);if(moEl&&moEl.value!=='')S.rocks[k].mo=Math.max(1,+moEl.value)*12;
   });
   TIERS.forEach(t=>{['p','eYr1','eGrow','avgUse','avgUseGrow','util','ovPctYr1','ovPctYr10','ovDisc','dorm','grow','ret','up'].forEach(k=>{const el=document.getElementById('sv_'+t+'_'+k);if(el&&el.value!==''){S.skus[t][k]=+el.value;}});});
   TIERS.forEach(t=>{
