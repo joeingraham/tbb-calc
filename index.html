@@ -186,17 +186,17 @@ const B={subs:{"Pro":942226,"Pro+":143442},costPerPRU:.25,
   pru:{"Pro":{p0:0,p10:3.6,p25:20,p50:87,p75:229,p90:405,p95:604,p99:2176,p100:50000},
        "Pro+":{p0:0,p10:43,p25:193,p50:604,p75:1275,p90:2260,p95:3579,p99:10927,p100:100000}}};
 
-const S={provDisc:40,wacc:12,cogsImprove:0.3,
+const S={provDisc:40,wacc:10,cogsImprove:0.5,
   rocks:{
     firstParty:{on:false,pct:20,mo:12,label:'Launch 1P Model',desc:'Ship in-house model, eliminate 3P margin on key workloads'},
-    selfHost:{on:false,pct:15,mo:18,label:'Self-Hosted Inference',desc:'Run partner models on own infra, cut hosting markup'},
-    partnerNeg:{on:true,pct:12,mo:6,label:'Partner Negotiations',desc:'Volume discounts, committed spend deals with providers'},
+    selfHost:{on:true,pct:15,mo:24,label:'Self-Hosted Inference',desc:'Run partner models on own infra, cut hosting markup'},
+    partnerNeg:{on:false,pct:12,mo:6,label:'Partner Negotiations',desc:'Volume discounts, committed spend deals with providers'},
   },
   skus:{
-    "Pro":  {p:10,eYr1:13,eGrow:3,avgUse:16,avgUseGrow:3,ovDisc:10,util:50,dorm:15,grow:5,ret:75,up:11,ovPctYr1:5,ovPctYr10:14},
-    "Pro+": {p:39,eYr1:72,eGrow:2,avgUse:75,avgUseGrow:4,ovDisc:10,util:55,dorm:8,grow:3,ret:78,up:8,ovPctYr1:8,ovPctYr10:26},
-    "Max":  {p:100,eYr1:228,eGrow:3,avgUse:230,avgUseGrow:5,ovDisc:10,util:55,dorm:3,grow:2,ret:88,up:5,ovPctYr1:12,ovPctYr10:48},
-    "Ultra":{p:200,eYr1:470,eGrow:3,avgUse:480,avgUseGrow:7,ovDisc:10,util:60,dorm:0,grow:1,ret:93,up:0,ovPctYr1:52,ovPctYr10:90},
+    "Pro":  {p:10,eYr1:15,eGrow:2,avgUse:16,avgUseGrow:5,ovDisc:0,util:50,dorm:25,grow:2,ret:50,up:15,ovPctYr1:5,ovPctYr10:5},
+    "Pro+": {p:39,eYr1:70,eGrow:2,avgUse:75,avgUseGrow:5,ovDisc:5,util:90,dorm:5,grow:2,ret:60,up:10,ovPctYr1:10,ovPctYr10:10},
+    "Max":  {p:100,eYr1:200,eGrow:2,avgUse:210,avgUseGrow:5,ovDisc:10,util:90,dorm:0,grow:2,ret:70,up:5,ovPctYr1:15,ovPctYr10:15},
+    "Ultra":{p:200,eYr1:500,eGrow:2,avgUse:600,avgUseGrow:20,ovDisc:15,util:95,dorm:0,grow:2,ret:80,up:0,ovPctYr1:50,ovPctYr10:75},
   }};
 let selectedYear=0;
 let revViewTier="arr";
