@@ -952,18 +952,52 @@ function renderPL(R){
   const d=(a,m)=>toAnnual(a,m);
   const ln={tension:.4,pointRadius:0,borderWidth:2};
   const f$=v=>fmt(v);
-  // Waterfall charts
-  ch('waterfall-rev','bar',[...TIERS.map(t=>({label:t+' Sub',data:d(R.sr[t],'sum'),backgroundColor:TC[t]+'cc',stack:'a',borderRadius:1})),...TIERS.map(t=>({label:t+' Ovg',data:d(R.or[t],'sum'),backgroundColor:TC[t]+'55',stack:'a',borderRadius:1,borderWidth:1,borderColor:TC[t]}))],v=>fmt(v),{stacked:true,labels:YR_LABELS,maxX:10,labelFmt:fmt});
-  ch('waterfall-cum','bar',[{label:'Sub ARR',data:d(R.st.map(v=>v*12),'last'),backgroundColor:'#16a34acc',stack:'a',borderRadius:2},{label:'Ovg ARR',data:d(R.ot.map(v=>v*12),'last'),backgroundColor:'#4ade80aa',stack:'a',borderRadius:2},{label:'Total',data:d(R.arr,'last'),type:'line',borderColor:'#fff',borderWidth:2,pointRadius:4,tension:.4,_showLabels:true}],v=>fmt(v),{stacked:true,labels:YR_LABELS,maxX:10,labelFmt:fmt});
-  // P&L table
-  const aR=d(R.st.map((v,i)=>v+R.ot[i]),'sum'),aS=d(R.st,'sum'),aO=d(R.ot,'sum'),aC=d(TIERS.reduce((a,t)=>a.map((v,i)=>v+R.cg[t][i]),Array(120).fill(0)),'sum'),aG=aR.map((v,i)=>v-aC[i]),aGM=aR.map((v,i)=>v>0?(v-aC[i])/v*100:0),aU=d(R.tu,'last');
-  const pr=(l,a,p)=>{const t=a.reduce((x,b)=>x+b,0);return`<tr><td>${l}</td>${a.map(v=>`<td class="${v<0?'neg':v>0?'pos':''}">${p?v.toFixed(1)+'%':fmtFull(v)}</td>`).join('')}${p?'<td>—</td>':`<td class="${t<0?'neg':'pos'}">${fmtFull(t)}</td>`}</tr>`;};
-  $('pl-table').innerHTML=`<thead><tr><th>Metric</th>${YR_LABELS.map(y=>`<th>${y}</th>`).join('')}<th>10yr Total</th></tr></thead><tbody>${pr('Subscribers',aU)}${pr('Revenue',aR)}${pr('  Subscription',aS)}${pr('  Overage',aO)}${pr('COGS',aC.map(v=>-v))}<tr class="total-row"><td>Gross Profit</td>${aG.map(v=>`<td class="${v<0?'neg':'pos'}">${fmtFull(v)}</td>`).join('')}<td class="${aG.reduce((a,b)=>a+b,0)<0?'neg':'pos'}">${fmtFull(aG.reduce((a,b)=>a+b,0))}</td></tr><tr class="total-row"><td>Gross Margin %</td>${aGM.map(v=>`<td class="${v<0?'neg':'pos'}">${v.toFixed(1)}%</td>`).join('')}<td>—</td></tr></tbody>`;
-  // Revenue detail
+  // Use same aggregation as Overview: ARR = last month × 12, In-Period = sum of months
+  // For P&L tables, show annual in-period revenue (sum of 12 months)
+  const aR=d(R.st.map((v,i)=>v+R.ot[i]),'sum'); // total monthly rev summed per year
+  const aS=d(R.st,'sum');
+  const aO=d(R.ot,'sum');
+  const totalCogs=R.cg["Pro"].map((_,i)=>TIERS.reduce((s,t)=>s+R.cg[t][i],0));
+  const aC=d(totalCogs,'sum');
+  const aG=aR.map((v,i)=>v-aC[i]);
+  const aGM=aR.map((v,i)=>v>0?(v-aC[i])/v*100:0);
+  const aU=d(R.tu,'last');
+
+  // Waterfall charts — use same data
+  ch('waterfall-rev','bar',[
+    ...TIERS.map(t=>({label:t+' Sub',data:d(R.sr[t],'sum'),backgroundColor:TC[t]+'cc',stack:'a',borderRadius:1})),
+    ...TIERS.map(t=>({label:t+' Ovg',data:d(R.or[t],'sum'),backgroundColor:TC[t]+'55',stack:'a',borderRadius:1,borderWidth:1,borderColor:TC[t]}))
+  ],v=>fmt(v),{stacked:true,labels:YR_LABELS,maxX:10,labelFmt:fmt});
+
+  // ARR chart (last month × 12, matching Overview)
+  ch('waterfall-cum','bar',[
+    {label:'Sub ARR',data:d(R.st.map(v=>v*12),'last'),backgroundColor:'#16a34acc',stack:'a',borderRadius:2},
+    {label:'Ovg ARR',data:d(R.ot.map(v=>v*12),'last'),backgroundColor:'#4ade80aa',stack:'a',borderRadius:2},
+    {label:'Total',data:d(R.arr,'last'),type:'line',borderColor:'#fff',borderWidth:2,pointRadius:4,tension:.4,_showLabels:true}
+  ],v=>fmt(v),{stacked:true,labels:YR_LABELS,maxX:10,labelFmt:fmt});
+
+  // P&L table — no 10yr total column
+  const pr=(l,a,p)=>`<tr><td>${l}</td>${a.map(v=>`<td class="${v<0?'neg':v>0?'pos':''}">${p?v.toFixed(1)+'%':fmtFull(v)}</td>`).join('')}</tr>`;
+  $('pl-table').innerHTML=`<thead><tr><th>Metric</th>${YR_LABELS.map(y=>`<th>${y}</th>`).join('')}</tr></thead><tbody>
+    ${pr('Subscribers',aU)}
+    ${pr('In-Period Revenue',aR)}
+    ${pr('  Subscription',aS)}
+    ${pr('  Overage',aO)}
+    ${pr('COGS',aC.map(v=>-v))}
+    <tr class="total-row"><td>Gross Profit</td>${aG.map(v=>`<td class="${v<0?'neg':'pos'}">${fmtFull(v)}</td>`).join('')}</tr>
+    <tr class="total-row"><td>Gross Margin %</td>${aGM.map(v=>`<td class="${v<0?'neg':'pos'}">${v.toFixed(1)}%</td>`).join('')}</tr>
+  </tbody>`;
+
+  // Revenue detail by tier — no 10yr total
   const tc={"Pro":"tier-pro","Pro+":"tier-pp","Max":"tier-mx","Ultra":"tier-ultra"};
-  let rdH=`<thead><tr><th>Tier</th>${YR_LABELS.map(y=>`<th>${y}</th>`).join('')}<th>10yr Total</th></tr></thead><tbody>`;const tRA=Array(10).fill(0);
-  TIERS.forEach(t=>{const rv=d(R.sr[t].map((v,i)=>v+R.or[t][i]),'sum'),tot=rv.reduce((a,b)=>a+b,0);rv.forEach((v,i)=>tRA[i]+=v);rdH+=`<tr><td class="${tc[t]}">${t}</td>${rv.map(v=>`<td>${fmtFull(v)}</td>`).join('')}<td><strong>${fmtFull(tot)}</strong></td></tr>`;});
-  rdH+=`<tr class="total-row"><td>Total</td>${tRA.map(v=>`<td>${fmtFull(v)}</td>`).join('')}<td><strong>${fmtFull(tRA.reduce((a,b)=>a+b,0))}</strong></td></tr></tbody>`;
+  let rdH=`<thead><tr><th>Tier</th>${YR_LABELS.map(y=>`<th>${y}</th>`).join('')}</tr></thead><tbody>`;
+  const tRA=Array(10).fill(0);
+  TIERS.forEach(t=>{
+    const rv=d(R.sr[t].map((v,i)=>v+R.or[t][i]),'sum');
+    rv.forEach((v,i)=>tRA[i]+=v);
+    rdH+=`<tr><td class="${tc[t]}">${t}</td>${rv.map(v=>`<td>${fmtFull(v)}</td>`).join('')}</tr>`;
+  });
+  rdH+=`<tr class="total-row"><td>Total</td>${tRA.map(v=>`<td>${fmtFull(v)}</td>`).join('')}</tr></tbody>`;
   $('rev-detail-table').innerHTML=rdH;
 }
 
