@@ -23,12 +23,6 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .main::-webkit-scrollbar{width:6px}
 .main::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px}
 
-.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:18px}
-.kpi{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:12px}
-.kpi .l{font-size:9px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.3px}
-.kpi .n{font-size:20px;font-weight:800;margin-top:2px}
-.kpi .s{font-size:10px;color:var(--tx3);margin-top:1px}
-
 .sec-hd{font-size:13px;font-weight:700;margin:20px 0 10px;background:#fff;color:#111;text-align:center;padding:7px 0;border-radius:6px}
 
 .row4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px}
@@ -124,6 +118,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .row2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:10px}
 .cbox.tall canvas{height:300px!important}
 .exec-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px}
+#pane-unit .exec-table{table-layout:fixed}
+#pane-unit .exec-table th:first-child,#pane-unit .exec-table td:first-child{width:40%}
+#pane-unit .exec-table th:nth-child(n+2),#pane-unit .exec-table td:nth-child(n+2){width:15%}
 .exec-table th{background:var(--card2);color:var(--tx2);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.5px;padding:10px 12px;text-align:right;border-bottom:2px solid var(--bd)}
 .exec-table th:first-child{text-align:left}
 .exec-table td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--bd);font-variant-numeric:tabular-nums}
@@ -162,8 +159,6 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 <div class="main">
   <div id="story-summary"></div>
   <div id="principles-checklist" style="margin-bottom:16px"></div>
-  <div class="kpis" id="kpis"></div>
-
   <div class="tab-bar" id="tab-bar"></div>
 
   <!-- Tab: Overview -->
@@ -759,16 +754,8 @@ function render(){
   // View toggle removed — always annual
 
   const R=simulate(),L=119;
-  const tR0=R.st[0]+R.ot[0],tRL=R.st[L]+R.ot[L];
-  const npv=TIERS.reduce((s,t)=>s+R.u[t][0]*R.ltv[t][L],0);
 
-  $('kpis').innerHTML=`
-    <div class="kpi"><div class="l">Users M0</div><div class="n">${fN(R.tu[0])}</div><div class="s">Churn: ${R.m0cp.toFixed(1)}%</div></div>
-    <div class="kpi"><div class="l">Users Yr10</div><div class="n">${fN(R.tu[L])}</div><div class="s">${(R.tu[L]/R.tu[0]*100-100).toFixed(0)}% growth</div></div>
-    <div class="kpi"><div class="l">Rev M0</div><div class="n">${fmt(tR0)}</div><div class="s">Yr10: ${fmt(tRL)}</div></div>
-    <div class="kpi"><div class="l">GM M0</div><div class="n" style="color:${R.bgm[0]>=0?'var(--green)':'var(--red)'}">${R.bgm[0].toFixed(1)}%</div><div class="s">Yr10: ${R.bgm[L].toFixed(1)}%</div></div>
-    <div class="kpi"><div class="l">GM \u0394</div><div class="n" style="color:var(--green)">+${(R.bgm[L]-R.bgm[0]).toFixed(1)}pp</div><div class="s">M0\u2192Yr5</div></div>
-    <div class="kpi"><div class="l">10yr NPV</div><div class="n">${fmt(npv)}</div><div class="s">U:$${R.ltv["Ultra"][L].toFixed(0)} P:$${R.ltv["Pro"][L].toFixed(0)}</div></div>`;
+  // KPI row removed
 
   // ── Principles Checklist ──
   const ltvEnd=TIERS.map(t=>R.ltv[t][L]);
