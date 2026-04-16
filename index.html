@@ -864,27 +864,44 @@ function renderOverview(R){
     {label:'M→U',data:d(R.up.ul,'avg'),borderColor:TC["Ultra"],...ln,pointRadius:3},
   ],v=>v.toFixed(1)+'%',{tipFmt:v=>v.toFixed(2)+'%',labels,maxX:mxT});
 
-  // Financials — independent toggles
-  const mulTier=revViewTier==='arr'?12:1;
-  const mulType=revViewType==='arr'?12:1;
+  // Financials — compute canonical annual data once
+  // In-period = sum of 12 monthly values per year
+  // ARR = last month of year × 12
+  const annSub={}; TIERS.forEach(t=>{annSub[t]=d(R.sr[t],'sum');});
+  const annOv={}; TIERS.forEach(t=>{annOv[t]=d(R.or[t],'sum');});
+  const annRevByTier={}; TIERS.forEach(t=>{annRevByTier[t]=annSub[t].map((v,i)=>v+annOv[t][i]);});
+  const annSubTotal=d(R.st,'sum');
+  const annOvTotal=d(R.ot,'sum');
+  const annRevTotal=annSubTotal.map((v,i)=>v+annOvTotal[i]);
+
+  // ARR versions (for toggle)
+  const arrSub={}; TIERS.forEach(t=>{arrSub[t]=d(R.sr[t].map(v=>v*12),'last');});
+  const arrOv={}; TIERS.forEach(t=>{arrOv[t]=d(R.or[t].map(v=>v*12),'last');});
+  const arrRevByTier={}; TIERS.forEach(t=>{arrRevByTier[t]=arrSub[t].map((v,i)=>v+arrOv[t][i]);});
+  const arrSubTotal=d(R.st.map(v=>v*12),'last');
+  const arrOvTotal=d(R.ot.map(v=>v*12),'last');
+
   $('rev-toggle-tier').innerHTML=`<button class="mini-tab${revViewTier==='arr'?' on':''}" onclick="revViewTier='arr';render()">ARR</button><button class="mini-tab${revViewTier==='monthly'?' on':''}" onclick="revViewTier='monthly';render()">In Period</button>`;
   $('rev-toggle-type').innerHTML=`<button class="mini-tab${revViewType==='arr'?' on':''}" onclick="revViewType='arr';render()">ARR</button><button class="mini-tab${revViewType==='monthly'?' on':''}" onclick="revViewType='monthly';render()">In Period</button>`;
 
-  // Revenue by tier
-  const revByTierM=TIERS.map(t=>R.sr[t].map((v,i)=>(v+R.or[t][i])*mulTier));
-  ch('c5','bar',TIERS.map((t,ti)=>({label:t,data:d(revByTierM[ti],revViewTier==='arr'?'last':'sum'),backgroundColor:TC[t]+'cc',stack:'a',borderRadius:2})),f$,{stacked:true,tipFmt:v=>fmt(v),labels,maxX:mxT,labelFmt:v=>fmt(v)});
+  // Revenue by tier — uses toggle
+  const rvTier=revViewTier==='arr'?arrRevByTier:annRevByTier;
+  ch('c5','bar',TIERS.map(t=>({label:t,data:rvTier[t],backgroundColor:TC[t]+'cc',stack:'a',borderRadius:2})),f$,{stacked:true,tipFmt:v=>fmt(v),labels,maxX:mxT,labelFmt:v=>fmt(v)});
 
-  // Sub vs Overage
+  // Sub vs Overage — uses toggle
+  const svSub=revViewType==='arr'?arrSubTotal:annSubTotal;
+  const svOv=revViewType==='arr'?arrOvTotal:annOvTotal;
   ch('c5b','bar',[
-    {label:'Subscription',data:d(R.st.map(v=>v*mulType),revViewType==='arr'?'last':'sum'),backgroundColor:'#16a34acc',stack:'a',borderRadius:2},
-    {label:'Overage',data:d(R.ot.map(v=>v*mulType),revViewType==='arr'?'last':'sum'),backgroundColor:'#4ade80aa',stack:'a',borderRadius:2},
+    {label:'Subscription',data:svSub,backgroundColor:'#16a34acc',stack:'a',borderRadius:2},
+    {label:'Overage',data:svOv,backgroundColor:'#4ade80aa',stack:'a',borderRadius:2},
   ],f$,{stacked:true,tipFmt:v=>fmt(v),labels,maxX:mxT});
 
-  // Gross profit stacked by tier + overall line
-  const totalGP=R.gp["Pro"].map((_,i)=>TIERS.reduce((s,t)=>s+R.gp[t][i],0));
+  // Gross profit stacked by tier + overall line (in-period, matches P&L)
+  const annGP={}; TIERS.forEach(t=>{annGP[t]=d(R.gp[t],'sum');});
+  const annGPTotal=annGP["Pro"].map((_,i)=>TIERS.reduce((s,t)=>s+annGP[t][i],0));
   ch('c6','bar',[
-    ...TIERS.map(t=>({label:t,data:d(R.gp[t],'sum'),backgroundColor:TC[t]+'cc',stack:'a',borderRadius:2})),
-    {label:'Total GP',data:d(totalGP,'sum'),type:'line',borderColor:'#fff',borderWidth:2,pointRadius:4,tension:.4,_showLabels:true},
+    ...TIERS.map(t=>({label:t,data:annGP[t],backgroundColor:TC[t]+'cc',stack:'a',borderRadius:2})),
+    {label:'Total GP',data:annGPTotal,type:'line',borderColor:'#fff',borderWidth:2,pointRadius:4,tension:.4,_showLabels:true},
   ],f$,{stacked:true,tipFmt:v=>fmt(v),labels,maxX:mxT,labelFmt:v=>fmt(v)});
 
   // Blended margin vs target
