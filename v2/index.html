@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>TBB Scenario Planner v2</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+:root{--bg:#0c1017;--card:#151a23;--card2:#1b2130;--bd:#252d3a;--tx:#e8edf4;--tx2:#8b95a5;--tx3:#5a6577;
+--accent:#7c6bf0;--accent2:#a599ff;--pro:#38bdf8;--pp:#8b7cf7;--mx:#34d399;--ultra:#f472b6;
+--red:#f87171;--green:#4ade80;--yellow:#fbbf24}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--tx);height:100vh;overflow:hidden}
+
+.app{display:grid;grid-template-columns:400px 1fr;height:100vh}
+
+.sidebar{background:var(--card);border-right:1px solid var(--bd);overflow-y:auto;padding:16px 18px;scrollbar-width:thin}
+.sidebar::-webkit-scrollbar{width:6px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px}
+
+.main{overflow-y:auto;padding:20px 24px;scrollbar-width:thin}
+.main::-webkit-scrollbar{width:6px}
+.main::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px}
+
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px}
+.kpis2{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:18px}
+.kpi{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:12px}
+.kpi.big{border-width:2px}
+.kpi .l{font-size:9px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.3px}
+.kpi .n{font-size:20px;font-weight:800;margin-top:2px}
+.kpi.big .n{font-size:26px}
+.kpi .s{font-size:10px;color:var(--tx3);margin-top:1px}
+
+.sec-hd{font-size:13px;font-weight:700;margin:20px 0 10px;background:#fff;color:#111;text-align:center;padding:7px 0;border-radius:6px}
+
+.row4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px}
+.cbox{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:12px}
+.cbox h4{font-size:10px;font-weight:600;color:var(--tx2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.2px}
+.cbox canvas{width:100%!important;height:240px!important}
+
+.checklist{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:16px 18px}
+.checklist-title{font-size:13px;font-weight:700;color:var(--tx);margin-bottom:10px}
+.check-item{display:flex;align-items:flex-start;gap:8px;font-size:13px;padding:6px 0;border-bottom:1px solid var(--bd)}
+.check-item:last-child{border-bottom:none}
+.check-icon{font-size:14px;flex-shrink:0;width:20px;text-align:center}
+.check-label{font-weight:600;min-width:160px}
+.check-detail{color:var(--tx3);font-size:11px;font-weight:400}
+
+.yr-tabs{display:flex;gap:4px;margin-bottom:8px}
+.yr-tab{padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--bd);background:var(--card2);color:var(--tx3)}
+.yr-tab:hover{border-color:var(--accent)}
+.yr-tab.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+.sb-title{font-size:14px;font-weight:800;color:var(--accent2);margin-bottom:12px}
+.sb-section{margin-bottom:16px}
+.sb-hd{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--bd)}
+
+.preset-row{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:14px}
+.pbtn{padding:6px 12px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid var(--bd);background:var(--card2);color:var(--tx2);transition:all .12s;font-family:inherit}
+.pbtn:hover{border-color:var(--accent);color:var(--tx)}
+.pbtn.on{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(124,107,240,.25)}
+
+.field{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.field .lbl{font-size:12px;color:var(--tx2);flex:1;min-width:0}
+.field input[type=range]{width:80px;height:4px;-webkit-appearance:none;background:var(--bd);border-radius:2px;outline:none;flex-shrink:0}
+.field input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer}
+.field .val{font-size:12px;font-weight:700;color:var(--accent2);min-width:32px;text-align:right}
+
+.sku-grid{display:grid;grid-template-columns:auto repeat(4,1fr);gap:2px 6px;font-size:11px;align-items:center}
+.sku-grid .hd{text-align:center;font-weight:800;font-size:13px;padding:4px 0}
+.sku-grid .rl{color:var(--tx2);padding:3px 0;white-space:nowrap}
+.sku-grid .cell{text-align:center;padding:2px 0}
+.ni{width:52px;padding:4px 6px;font-size:12px;font-weight:700;text-align:center;background:var(--bg);border:1.5px solid var(--bd);color:var(--tx);border-radius:5px;font-family:inherit}
+.ni:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(124,107,240,.1)}
+.cv{font-size:12px;font-weight:700}
+
+.toggle{position:relative;width:36px;height:20px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle .slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--bd);border-radius:10px;transition:.2s}
+.toggle .slider:before{content:"";position:absolute;height:14px;width:14px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
+.toggle input:checked+.slider{background:var(--green)}
+.toggle input:checked+.slider:before{transform:translateX(16px)}
+.rock-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;padding:8px 10px;background:var(--card2);border-radius:6px;border:1px solid var(--bd)}
+.rock-row.on{border-color:var(--green)}
+.rock-info{flex:1;min-width:0}
+.rock-name{font-size:11px;font-weight:600;color:var(--tx)}
+.rock-meta{display:flex;gap:6px;align-items:center;margin-top:3px;font-size:10px;color:var(--tx3)}
+.rock-impact{font-size:12px;font-weight:700;color:var(--green);text-align:right;min-width:36px;flex-shrink:0}
+.mini-tab{padding:3px 8px;border-radius:4px;font-size:9px;font-weight:600;cursor:pointer;border:1px solid var(--bd);background:var(--card2);color:var(--tx3);font-family:inherit}
+.mini-tab:hover{border-color:var(--accent)}
+.mini-tab.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+.savings-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px}
+.sav-card{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:14px;text-align:center}
+.sav-card .tier{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.sav-card .amt{font-size:24px;font-weight:800;margin:4px 0}
+.sav-card .sub{font-size:10px;color:var(--tx3)}
+</style>
+</head>
+<body>
+<div class="app">
+<!-- ═══ SIDEBAR ═══ -->
+<div class="sidebar">
+  <div class="sb-title">⚙️ Assumptions <span style="font-size:10px;font-weight:400;color:var(--tx3)">v2</span></div>
+  <div class="sb-section"><div class="sb-hd">Global</div><div class="sku-grid" id="g-grid" style="grid-template-columns:auto 1fr"></div></div>
+  <div class="sb-section"><div class="sb-hd">Pricing & Entitlements</div><div class="sku-grid" id="sku-pricing"></div></div>
+  <div class="sb-section"><div class="sb-hd">Usage & Overage</div><div class="sku-grid" id="sku-usage"></div></div>
+  <div class="sb-section"><div class="sb-hd">Growth & Retention</div><div class="sku-grid" id="sku-growth"></div></div>
+  <div class="sb-section"><div class="sb-hd">Efficiency Big Rocks</div><div id="rocks-grid"></div></div>
+</div>
+<!-- ═══ MAIN ═══ -->
+<div class="main">
+  <div id="principles-checklist" style="margin-bottom:16px"></div>
+  <div class="kpis" id="kpis-users"></div>
+  <div class="kpis2" id="kpis-fin"></div>
+
+  <div class="sec-hd">Users</div>
+  <div class="row4">
+    <div class="cbox"><h4>Users by Tier</h4><canvas id="c1"></canvas></div>
+    <div class="cbox"><h4>User Growth Waterfall</h4><canvas id="c2"></canvas></div>
+    <div class="cbox"><h4>Monthly Churn % by SKU</h4><canvas id="c3"></canvas></div>
+    <div class="cbox"><h4>Upsell Rate (Monthly)</h4><canvas id="c4"></canvas></div>
+  </div>
+
+  <div class="sec-hd">Financials</div>
+  <div class="row4">
+    <div class="cbox">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <h4 style="margin:0">Revenue by Tier</h4>
+        <div style="display:flex;gap:3px" id="rev-toggle-tier"></div>
+      </div>
+      <canvas id="c5"></canvas>
+    </div>
+    <div class="cbox">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <h4 style="margin:0">Sub vs Overage</h4>
+        <div style="display:flex;gap:3px" id="rev-toggle-type"></div>
+      </div>
+      <canvas id="c5b"></canvas>
+    </div>
+    <div class="cbox"><h4>Gross Profit by Tier</h4><canvas id="c6"></canvas></div>
+    <div class="cbox"><h4>Blended Margin vs Target</h4><canvas id="c7"></canvas></div>
+  </div>
+
+  <div class="sec-hd">Unit Economics</div>
+  <div class="row4">
+    <div class="cbox"><h4>ARPU (Monthly)</h4><canvas id="c8"></canvas></div>
+    <div class="cbox"><h4>COGS / User / Month</h4><canvas id="c9"></canvas></div>
+    <div class="cbox"><h4>Gross Profit / User</h4><canvas id="c10"></canvas></div>
+    <div class="cbox"><h4>Gross Margin % by Tier</h4><canvas id="c12"></canvas></div>
+  </div>
+
+  <div class="sec-hd">Savings vs Subscription-Only</div>
+  <div id="savings-cards"></div>
+  <div class="row4">
+    <div class="cbox"><h4>Monthly Savings / User by Tier</h4><canvas id="sav-chart"></canvas></div>
+    <div class="cbox"><h4>Overage Revenue Share %</h4><canvas id="ov-share"></canvas></div>
+    <div class="cbox"><h4>TBB GP/User vs Sub-Only GP/User</h4><canvas id="sav-compare"></canvas></div>
+    <div class="cbox"><h4>Cumulative Incremental Revenue</h4><canvas id="sav-cum"></canvas></div>
+  </div>
+
+  <div class="sec-hd">Gross Margin by Usage Level & 10yr LTV</div>
+  <div class="yr-tabs" id="yr-tabs"></div>
+  <div class="row4">
+    <div class="cbox"><h4 style="color:var(--pro)">Pro — GM by Usage</h4><canvas id="gmu-Pro"></canvas></div>
+    <div class="cbox"><h4 style="color:var(--pp)">Pro+ — GM by Usage</h4><canvas id="gmu-pp"></canvas></div>
+    <div class="cbox"><h4 style="color:var(--mx)">Max — GM by Usage</h4><canvas id="gmu-Max"></canvas></div>
+    <div class="cbox"><h4 style="color:var(--ultra)">Ultra — GM by Usage</h4><canvas id="gmu-Ultra"></canvas></div>
+  </div>
+  <div class="row4">
+    <div class="cbox"><h4 style="color:var(--pro)">Pro — Cumulative LTV</h4><canvas id="ltv-Pro"></canvas></div>
+    <div class="cbox"><h4 style="color:var(--pp)">Pro+ — Cumulative LTV</h4><canvas id="ltv-pp"></canvas></div>
+    <div class="cbox"><h4 style="color:var(--mx)">Max — Cumulative LTV</h4><canvas id="ltv-Max"></canvas></div>
+    <div class="cbox"><h4 style="color:var(--ultra)">Ultra — Cumulative LTV</h4><canvas id="ltv-Ultra"></canvas></div>
+  </div>
+
+  <div class="sec-hd">Assumptions Over Time</div>
+  <div class="row4">
+    <div class="cbox"><h4>Entitlement $ by Tier</h4><canvas id="a-ent"></canvas></div>
+    <div class="cbox"><h4>Entitlement / Price Ratio</h4><canvas id="a-ratio"></canvas></div>
+    <div class="cbox"><h4>Overage % by Tier</h4><canvas id="a-ov"></canvas></div>
+    <div class="cbox"><h4>COGS Efficiency Factor</h4><canvas id="a-eff"></canvas></div>
+  </div>
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script>
+const TIERS=["Pro","Pro+","Max","Ultra"];
+const TC={"Pro":"#38bdf8","Pro+":"#8b7cf7","Max":"#34d399","Ultra":"#f472b6"};
+const B={subs:{"Pro":942226,"Pro+":143442},costPerPRU:.25,
+  pru:{"Pro":{p0:0,p10:3.6,p25:20,p50:87,p75:229,p90:405,p95:604,p99:2176,p100:50000},
+       "Pro+":{p0:0,p10:43,p25:193,p50:604,p75:1275,p90:2260,p95:3579,p99:10927,p100:100000}}};
+
+// Old subscription prices for savings comparison
+const OLD_PRICE={"Pro":10,"Pro+":39,"Max":39,"Ultra":39};
+
+const S={provDisc:40,wacc:10,cogsImprove:0.5,
+  rocks:{
+    firstParty:{on:false,pct:20,mo:12,label:'Launch 1P Model',desc:'Ship in-house model, eliminate 3P margin on key workloads'},
+    selfHost:{on:true,pct:15,mo:24,label:'Self-Hosted Inference',desc:'Run partner models on own infra, cut hosting markup'},
+    partnerNeg:{on:false,pct:12,mo:6,label:'Partner Negotiations',desc:'Volume discounts, committed spend deals with providers'},
+  },
+  skus:{
+    "Pro":  {p:10,eYr1:15,eGrow:2,avgUse:16,avgUseGrow:5,ovDisc:0,util:50,dorm:25,grow:2,ret:50,up:15,ovPctYr1:5,ovPctYr10:12},
+    "Pro+": {p:39,eYr1:70,eGrow:3,avgUse:75,avgUseGrow:8,ovDisc:5,util:90,dorm:5,grow:2,ret:60,up:10,ovPctYr1:10,ovPctYr10:28},
+    "Max":  {p:100,eYr1:190,eGrow:2,avgUse:210,avgUseGrow:8,ovDisc:10,util:90,dorm:0,grow:2,ret:70,up:5,ovPctYr1:18,ovPctYr10:40},
+    "Ultra":{p:200,eYr1:500,eGrow:2,avgUse:600,avgUseGrow:20,ovDisc:15,util:95,dorm:0,grow:2,ret:80,up:0,ovPctYr1:50,ovPctYr10:75},
+  }};
+let selectedYear=0;
+let revViewTier="arr";
+let revViewType="arr";
+
+const $=s=>document.getElementById(s)||document.querySelector(s);
+const fmt=n=>Math.abs(n)>=1e9?`$${(n/1e9).toFixed(1)}B`:Math.abs(n)>=1e6?`$${(n/1e6).toFixed(1)}M`:Math.abs(n)>=1e3?`$${(n/1e3).toFixed(0)}K`:`$${n.toFixed(0)}`;
+const fN=n=>Math.abs(n)>=1e6?`${(n/1e6).toFixed(1)}M`:Math.abs(n)>=1e3?`${(n/1e3).toFixed(0)}K`:`${n.toFixed(0)}`;
+let CH={};function dc(id){if(CH[id]){CH[id].destroy();delete CH[id]}}
+
+function getE(t,m){const yr=Math.min(9,Math.floor(m/12));const s=S.skus[t];return Math.round(s.eYr1*Math.pow(1+s.eGrow/100,yr));}
+function getOvPct(t,m){const yr=Math.min(9,Math.floor(m/12));const s=S.skus[t];return (s.ovPctYr1+(s.ovPctYr10-s.ovPctYr1)*yr/9)/100;}
+function getAvgUse(t,yr){const s=S.skus[t];return s.avgUse*Math.pow(1+s.avgUseGrow/100,yr);}
+function getUtil(t){return S.skus[t].util/100;}
+
+/* ══ BUILD UI ══ */
+const GLOBS=[
+  {key:'provDisc',label:'Provider Discount %',suf:'%'},
+  {key:'cogsImprove',label:'Monthly COGS Improve %',suf:'%'},
+  {key:'wacc',label:'Discount Rate (WACC) %',suf:'%'},
+];
+function buildGlobs(){
+  let h='';GLOBS.forEach(g=>{
+    h+=`<div class="rl">${g.label}</div><div class="cell"><input class="ni" type="number" id="g_${g.key}" value="${S[g.key]}" onchange="onEdit()" style="width:56px"></div>`;
+  });$('g-grid').innerHTML=h;
+}
+
+function buildRocks(){
+  let h='';
+  Object.entries(S.rocks).forEach(([k,r])=>{
+    const yr=Math.ceil(r.mo/12);
+    h+=`<div class="rock-row ${r.on?'on':''}" id="rock-${k}">
+      <label class="toggle"><input type="checkbox" id="rk_${k}" ${r.on?'checked':''} onchange="onEdit()"><span class="slider"></span></label>
+      <div class="rock-info">
+        <input type="text" id="rk_nm_${k}" value="${r.label}" onchange="onEdit()" style="background:transparent;border:none;color:var(--tx);font-size:11px;font-weight:600;width:100%;padding:0;font-family:inherit">
+        <div class="rock-meta">
+          <span>Savings</span><input class="ni" type="number" id="rk_pct_${k}" value="${r.pct}" onchange="onEdit()" style="width:36px;font-size:10px;padding:2px 4px">%
+          <span style="margin-left:4px">Year</span><input class="ni" type="number" id="rk_mo_${k}" value="${yr}" min="1" max="10" onchange="onEdit()" style="width:30px;font-size:10px;padding:2px 4px">
+        </div>
+      </div>
+      <div class="rock-impact">-${r.pct}%</div>
+    </div>`;
+  });
+  $('rocks-grid').innerHTML=h;
+}
+
+const SKU_PRICING=[
+  {l:'Price $/mo',k:'p'},
+  {l:'Entitlement $ (Yr1)',k:'eYr1'},
+  {l:'Entitlement Growth %/yr',k:'eGrow'},
+  {l:'Value Ratio (Yr1)',k:'_ratio',c:true},
+];
+const SKU_USAGE=[
+  {l:'Avg Consumption $ (Yr1)',k:'avgUse'},
+  {l:'Consumption Growth %/yr',k:'avgUseGrow'},
+  {l:'Entitlement Utilization %',k:'util'},
+  {l:'% in Overage (Yr1)',k:'ovPctYr1'},
+  {l:'% in Overage (Yr10)',k:'ovPctYr10'},
+  {l:'Overage Discount %',k:'ovDisc'},
+  {l:'Overage GM %',k:'_ovgm',c:true},
+];
+const SKU_GROWTH=[
+  {l:'Dormant Subs %',k:'dorm'},
+  {l:'New User Growth %/mo',k:'grow'},
+  {l:'Retention (ann %)',k:'ret'},
+  {l:'Upsell (ann %)',k:'up'},
+];
+function buildSkuSection(rows,elId){
+  let h='<div></div>';TIERS.forEach(t=>{h+=`<div class="hd" style="color:${TC[t]}">${t}</div>`;});
+  rows.forEach(r=>{
+    h+=`<div class="rl">${r.l}</div>`;
+    TIERS.forEach(t=>{
+      if(r.c)h+=`<div class="cell"><span class="cv" id="cv_${r.k}_${t}">—</span></div>`;
+      else h+=`<div class="cell"><input class="ni" type="number" id="sv_${t}_${r.k}" value="${S.skus[t][r.k]}" onchange="onEdit()"></div>`;
+    });
+  });$(elId).innerHTML=h;
+}
+function buildSku(){
+  buildSkuSection(SKU_PRICING,'sku-pricing');
+  buildSkuSection(SKU_USAGE,'sku-usage');
+  buildSkuSection(SKU_GROWTH,'sku-growth');
+}
+
+function buildYrTabs(){
+  let h='';for(let y=0;y<10;y++){
+    h+=`<div class="yr-tab${y===selectedYear?' on':''}" onclick="selectedYear=${y};render()">Year ${y+1}</div>`;
+  }$('yr-tabs').innerHTML=h;
+}
+
+function onEdit(){
+  GLOBS.forEach(g=>{const el=document.getElementById('g_'+g.key);if(el&&el.value!==''){S[g.key]=+el.value;}});
+  Object.keys(S.rocks).forEach(k=>{
+    const el=document.getElementById('rk_'+k);if(el)S.rocks[k].on=el.checked;
+    const nm=document.getElementById('rk_nm_'+k);if(nm)S.rocks[k].label=nm.value;
+    const pct=document.getElementById('rk_pct_'+k);if(pct&&pct.value!=='')S.rocks[k].pct=+pct.value;
+    const moEl=document.getElementById('rk_mo_'+k);if(moEl&&moEl.value!=='')S.rocks[k].mo=Math.max(1,+moEl.value)*12;
+  });
+  TIERS.forEach(t=>{['p','eYr1','eGrow','avgUse','avgUseGrow','util','ovPctYr1','ovPctYr10','ovDisc','dorm','grow','ret','up'].forEach(k=>{const el=document.getElementById('sv_'+t+'_'+k);if(el&&el.value!==''){S.skus[t][k]=+el.value;}});});
+  TIERS.forEach(t=>{
+    const re=document.getElementById('cv__ratio_'+t);if(re)re.textContent=(S.skus[t].eYr1/S.skus[t].p).toFixed(1)+'×';
+    const ov=document.getElementById('cv__ovgm_'+t);if(ov){const gm=(1-(1-S.provDisc/100)/(1-S.skus[t].ovDisc/100))*100;ov.textContent=gm.toFixed(0)+'%';ov.style.color=gm>=0?'var(--green)':'var(--red)';}
+  });
+  render();
+}
+
+/* ══ MODEL ══ */
+function userDist(sku,n){
+  const d=B.pru[sku],pK=["p0","p10","p25","p50","p75","p90","p95","p99","p100"],
+    pV=[0,.1,.25,.5,.75,.9,.95,.99,1],pd=S.provDisc/100,sc=B.costPerPRU/(1-pd)*(30/28),u=[];
+  for(let i=0;i<n;i++){const p=i/n;let v=0;for(let j=0;j<pK.length-1;j++){if(p>=pV[j]&&p<pV[j+1]){v=d[pK[j]]+(p-pV[j])/(pV[j+1]-pV[j])*(d[pK[j+1]]-d[pK[j]]);break;}}if(p>=.99)v=d.p99+(p-.99)/.01*(d.p100-d.p99);u.push(Math.max(0,v*sc));}return u;
+}
+
+function effAt(m){
+  let factor=Math.pow(1-S.cogsImprove/100,m);
+  Object.values(S.rocks).forEach(r=>{
+    if(!r.on||m<r.mo)return;
+    const ramp=Math.min(1,(m-r.mo)/12);
+    factor*=(1-r.pct/100*ramp);
+  });
+  return factor;
+}
+
+const nxt={"Pro":"Pro+","Pro+":"Max","Max":"Ultra"};
+
+function simulate(){
+  const pd=S.provDisc/100,wacc=S.wacc/100;
+  const totalBase=B.subs["Pro"]+B.subs["Pro+"];
+
+  // M0 migration
+  const pop={"Pro":0,"Pro+":0,"Max":0,"Ultra":0};let m0c=0;
+  ["Pro","Pro+"].forEach(cur=>{
+    const tot=B.subs[cur],dm=Math.round(tot*S.skus[cur].dorm/100),act=tot-dm;
+    pop[cur]+=Math.round(dm*0.95); m0c+=dm-Math.round(dm*0.95);
+    const dist=userDist(cur,1000),w=act/1000;
+    dist.forEach(api=>{let bt=null,bc=1/0;TIERS.forEach(t=>{const s=S.skus[t],ov=Math.max(0,api-s.eYr1),c=s.p+ov*(1-s.ovDisc/100);if(c<bc){bc=c;bt=t;}});
+      const cp_=cur==="Pro"?10:39,inc=bc/cp_;let cp2=0;if(inc>2)cp2=Math.min(.5,.3);else if(inc>1.5)cp2=(inc-1)*.2;else if(inc>1)cp2=(inc-1)*.08;
+      pop[bt]+=w*(1-cp2);m0c+=w*cp2;});
+  });TIERS.forEach(t=>{pop[t]=Math.round(pop[t])});
+
+  const R={u:{},sr:{},or:{},cg:{},gm:{},gp:{},cpu:{},rpu:{},gpu:{},
+    tu:[],arr:[],bgm:[],st:[],ot:[],
+    up:{pp:[],mx:[],ul:[]},
+    cr:{},crAll:[],
+    newUsers:[],churnedOut:{},
+    arpu:[],
+    ltv:{},
+    // Savings data
+    savPerUser:{},subOnlyGP:{},tbbGP:{},ovShare:[]};
+  TIERS.forEach(t=>{R.u[t]=[];R.sr[t]=[];R.or[t]=[];R.cg[t]=[];R.gm[t]=[];R.gp[t]=[];R.cpu[t]=[];R.rpu[t]=[];R.gpu[t]=[];R.cr[t]=[];R.churnedOut[t]=[];R.savPerUser[t]=[];R.subOnlyGP[t]=[];R.tbbGP[t]=[];});
+  let cp={...pop},tc=Math.round(m0c),te=totalBase;
+
+  for(let m=0;m<120;m++){
+    const ef=effAt(m);
+    const yr=Math.min(9,Math.floor(m/12));
+
+    // Growth: ensure per-tier growth compensates churn + upsell
+    let totalNewU=0;
+    const prevTotal=TIERS.reduce((s,t)=>s+cp[t],0);
+    TIERS.forEach(t=>{
+      const baseRate=S.skus[t].grow/100;
+      const curRate=baseRate*Math.pow(0.85, m/120);
+      const churnRate=1-Math.pow(S.skus[t].ret/100,1/12);
+      const upsellOutRate=nxt[t]?((1-churnRate)*(1-Math.pow(1-S.skus[t].up/100,1/12))):0;
+      const totalLossRate=churnRate+upsellOutRate;
+      const effectiveRate=Math.max(curRate, totalLossRate+0.008);
+      const nw=Math.max(1, Math.round(cp[t]*effectiveRate));
+      cp[t]+=nw;te+=nw;totalNewU+=nw;
+    });
+    R.newUsers.push(totalNewU);
+
+    // Snapshot: revenue/COGS for current user counts
+    let tU=0,tSR=0,tOR=0,tC=0;
+    TIERS.forEach(t=>{
+      const u=Math.round(cp[t]),s=S.skus[t];
+      const ent=getE(t,m);
+      const curOvPct=getOvPct(t,m);
+      const wP=1-curOvPct, oP=curOvPct;
+      const curAvgUse=getAvgUse(t,yr);
+      const ut=getUtil(t);
+      const withinCost=ent*ut;
+      const overExcess=Math.max(0,curAvgUse-ent);
+      const sr=u*s.p;
+      const or_=u*oP*overExcess*(1-s.ovDisc/100);
+      const cg=u*(wP*withinCost+oP*curAvgUse)*(1-pd)*ef;
+      const tr=sr+or_,gp=tr-cg;
+      R.u[t].push(u);R.sr[t].push(sr);R.or[t].push(or_);R.cg[t].push(cg);
+      R.gm[t].push(tr>0?(gp/tr*100):0);R.gp[t].push(gp);
+      R.cpu[t].push(u>0?cg/u:0);R.rpu[t].push(u>0?tr/u:0);R.gpu[t].push(u>0?gp/u:0);
+
+      // Savings: per-user comparison vs subscription-only
+      const tbbGPu=u>0?gp/u:0;
+      const subOnlyGPu=OLD_PRICE[t]-(u>0?cg/u:0);
+      R.savPerUser[t].push(tbbGPu-subOnlyGPu);
+      R.subOnlyGP[t].push(subOnlyGPu);
+      R.tbbGP[t].push(tbbGPu);
+
+      tU+=u;tSR+=sr;tOR+=or_;tC+=cg;
+    });
+    R.tu.push(tU);R.arr.push((tSR+tOR)*12);R.bgm.push((tSR+tOR)>0?((tSR+tOR-tC)/(tSR+tOR)*100):0);
+    R.st.push(tSR);R.ot.push(tOR);
+    R.arpu.push(tU>0?(tSR+tOR)/tU:0);
+    R.ovShare.push((tSR+tOR)>0?(tOR/(tSR+tOR)*100):0);
+
+    R.up.pp.push((1-Math.pow(1-S.skus["Pro"].up/100,1/12))*100);
+    R.up.mx.push((1-Math.pow(1-S.skus["Pro+"].up/100,1/12))*100);
+    R.up.ul.push((1-Math.pow(1-S.skus["Max"].up/100,1/12))*100);
+
+    // End-of-month: churn + upsell
+    const np={"Pro":0,"Pro+":0,"Max":0,"Ultra":0};
+    let mcAll=0;
+    TIERS.forEach(t=>{
+      const mr=Math.pow(S.skus[t].ret/100,1/12);
+      const kept=cp[t]*mr;
+      const churned=cp[t]-kept;
+      mcAll+=churned;
+      R.cr[t].push(cp[t]>0?churned/cp[t]*100:0);
+      R.churnedOut[t].push(Math.round(churned));
+      const nt=nxt[t];
+      if(nt){
+        const ur=1-Math.pow(1-S.skus[t].up/100,1/12);
+        const upselled=kept*ur;
+        np[t]+=kept-upselled;
+        np[nt]+=upselled;
+      } else {
+        np[t]+=kept;
+      }
+    });
+
+    // Backstop: ensure total users never decline
+    let newTotal=TIERS.reduce((s,t)=>s+np[t],0);
+    if(newTotal<=prevTotal){
+      const deficit=Math.max(1,Math.round(prevTotal*0.002))-Math.max(0,newTotal-prevTotal);
+      if(deficit>0){np["Pro"]+=deficit;newTotal+=deficit;}
+    }
+
+    tc+=Math.round(mcAll);R.crAll.push(tU>0?mcAll/tU*100:0);cp=np;
+  }
+
+  // LTV simulation per starting tier
+  TIERS.forEach(st=>{
+    let p={"Pro":0,"Pro+":0,"Max":0,"Ultra":0};p[st]=1;const cum=[];let c=0;
+    for(let m=0;m<120;m++){const ef=effAt(m);const lyr=Math.min(9,Math.floor(m/12));let mR=0,mC=0;
+      TIERS.forEach(t=>{if(p[t]<.0001)return;const s=S.skus[t];
+        const ent=getE(t,m);const curOvPct=getOvPct(t,m);const curAvgUse=getAvgUse(t,lyr);const ut=getUtil(t);
+        const wP=1-curOvPct,overExcess=Math.max(0,curAvgUse-ent);
+        mR+=p[t]*(s.p+curOvPct*overExcess*(1-s.ovDisc/100));
+        mC+=p[t]*(wP*ent*ut+curOvPct*curAvgUse)*(1-pd)*ef;});
+      c+=(mR-mC)*Math.pow(1+wacc/12,-(m+1));cum.push(c);
+      const np2={"Pro":0,"Pro+":0,"Max":0,"Ultra":0};
+      TIERS.forEach(t=>{if(p[t]<.0001)return;const ret=Math.pow(S.skus[t].ret/100,1/12),kept=p[t]*ret,nt=nxt[t];
+        if(nt){const ur=1-Math.pow(1-S.skus[t].up/100,1/12);np2[t]+=kept*(1-ur);np2[nt]+=kept*ur;}else np2[t]+=kept;});p=np2;
+    }R.ltv[st]=cum;
+  });
+  R.m0cp=m0c/totalBase*100;return R;
+}
+
+/* ══ GM-BY-USAGE MODEL ══ */
+function gmByUsageForTier(tier, yearIdx){
+  const pd=S.provDisc/100;
+  const monthInYear=yearIdx*12+6;
+  const ef=effAt(monthInYear);
+  const s=S.skus[tier];
+  const ent=getE(tier,monthInYear);
+  const curAvgUse=getAvgUse(tier,yearIdx);
+  const usagePts=[];
+  const maxX=Math.max(ent*3, curAvgUse*2, 200);
+  const step=Math.max(1,Math.round(maxX/100));
+  for(let x=0;x<=maxX;x+=step)usagePts.push(x);
+
+  const gmLine=[], gmColors=[];
+  usagePts.forEach(x=>{
+    const ov=Math.max(0,x-ent);
+    const rev=s.p+ov*(1-s.ovDisc/100);
+    const cogs=x*(1-pd)*ef;
+    const gm=rev>0?((rev-cogs)/rev*100):0;
+    gmLine.push(gm);
+    gmColors.push(gm>=0?'rgba(74,222,128,.8)':'rgba(248,113,113,.8)');
+  });
+
+  const allDist=[...userDist("Pro",500),...userDist("Pro+",Math.round(500*B.subs["Pro+"]/B.subs["Pro"]))];
+  const tierDist=allDist.filter(api=>{
+    let bt=null,bc=1/0;
+    TIERS.forEach(t=>{const sk=S.skus[t],ov2=Math.max(0,api-getE(t,yearIdx*12+6)),c2=sk.p+ov2*(1-sk.ovDisc/100);if(c2<bc){bc=c2;bt=t;}});
+    return bt===tier;
+  });
+
+  const bins=usagePts.map(()=>0);
+  tierDist.forEach(u=>{const idx=Math.min(usagePts.length-1,Math.round(u/step));if(idx>=0&&idx<bins.length)bins[idx]++;});
+  const total=Math.max(tierDist.length,1);
+  const binPct=bins.map(b=>b/total*100);
+
+  return {usagePts,gmLine,gmColors,binPct,labels:usagePts.map(x=>'$'+x)};
+}
+
+/* ══ CHARTS ══ */
+const ML=Array.from({length:60},(_,i)=>i%12===0?`Yr ${Math.floor(i/12)+1}`:'');
+function ch(id,type,ds,yFmt,extra={}){
+  dc(id);const canvas=document.getElementById(id);if(!canvas)return;
+  const tipFmt=extra.tipFmt||yFmt;
+  const c=new Chart(canvas.getContext('2d'),{type,data:{labels:extra.labels||ML,datasets:ds},options:{
+    responsive:true,maintainAspectRatio:false,layout:{padding:{top:20}},interaction:{intersect:false,mode:'index'},
+    plugins:{legend:{position:'bottom',labels:{color:'#8b95a5',font:{family:'Inter',size:9},usePointStyle:true,pointStyle:'circle',padding:8}},
+      tooltip:{callbacks:{label:ctx=>{const v=ctx.parsed.y;return ctx.dataset.label+': '+(tipFmt?tipFmt(v):v);}}}},
+    scales:{x:{stacked:!!extra.stacked,ticks:{color:'#5a6577',font:{size:9},maxTicksLimit:extra.maxX||6},grid:{display:false}},
+      y:{stacked:!!extra.stacked,ticks:{color:'#5a6577',font:{size:9},callback:yFmt||(v=>v)},grid:{color:'rgba(42,49,58,.25)'}},
+      ...(extra.y1?{y1:{position:'right',ticks:{color:'#5a6577',font:{size:8},callback:extra.y1f||(v=>v)},grid:{display:false}}}:{})},
+  }});
+  c.config._labelFmt=extra.labelFmt||tipFmt;
+  CH[id]=c;
+}
+
+function toAnnual(arr,mode){
+  const out=[];
+  for(let y=0;y<10;y++){
+    const sl=arr.slice(y*12,Math.min((y+1)*12,arr.length));
+    if(sl.length===0){out.push(0);continue;}
+    if(mode==='sum') out.push(sl.reduce((a,b)=>a+b,0));
+    else if(mode==='avg') out.push(sl.reduce((a,b)=>a+b,0)/sl.length);
+    else out.push(sl[sl.length-1]);
+  }
+  return out;
+}
+const YR_LABELS=['Yr 1','Yr 2','Yr 3','Yr 4','Yr 5','Yr 6','Yr 7','Yr 8','Yr 9','Yr 10'];
+
+const dlPlugin={id:'dlp',afterDatasetsDraw(chart){
+  if(chart.config._noLabels)return;
+  const ctx=chart.ctx;
+  const labelFmt=chart.config._labelFmt;
+  const isStacked=chart.options.scales?.y?.stacked;
+
+  chart.data.datasets.forEach((ds,di)=>{
+    if(ds.type==='line'&&!ds._showLabels)return;
+    const meta=chart.getDatasetMeta(di);
+    if(!meta.visible)return;
+    meta.data.forEach((el,i)=>{
+      const v=ds.data[i];if(v==null)return;
+      let label;
+      if(labelFmt)label=labelFmt(v);
+      else if(typeof v==='number'){if(Math.abs(v)>=1e6)label=fmt(v);else if(Math.abs(v)>=1e3)label=fN(v);else if(Math.abs(v)>=1)label=v.toFixed(0);else label=v.toFixed(1);}else label='';
+      if(Math.abs(v)<0.01)return;
+      const isBar=ds.type!=='line'&&meta.type!=='line';
+      ctx.save();ctx.font='bold 9px Inter';ctx.textAlign='center';
+      if(isBar&&isStacked){
+        const barH=Math.abs(el.height||0);
+        if(barH<14){ctx.restore();return;}
+        ctx.fillStyle='rgba(255,255,255,0.85)';
+        ctx.fillText(label,el.x,el.y+el.height/2+3);
+      } else {
+        ctx.fillStyle='#e8edf4';
+        ctx.fillText(label,el.x,el.y-8);
+      }
+      ctx.restore();
+    });
+  });
+
+  if(isStacked){
+    const nPts=chart.data.labels.length;
+    for(let i=0;i<nPts;i++){
+      let total=0, topY=Infinity;
+      chart.data.datasets.forEach((ds,di)=>{
+        if(ds.type==='line')return;
+        const meta=chart.getDatasetMeta(di);
+        if(!meta.visible)return;
+        const v=ds.data[i];
+        if(v!=null&&v>0){total+=v;topY=Math.min(topY,meta.data[i].y);}
+      });
+      if(total>0&&topY<Infinity){
+        let label;
+        if(labelFmt)label=labelFmt(total);
+        else label=Math.abs(total)>=1e6?fmt(total):fN(total);
+        ctx.save();ctx.font='bold 10px Inter';ctx.textAlign='center';ctx.fillStyle='#fff';
+        ctx.fillText(label,chart.getDatasetMeta(0).data[i].x,topY-8);
+        ctx.restore();
+      }
+    }
+  }
+}};
+Chart.register(dlPlugin);
+
+/* ══ RENDER ══ */
+function render(){
+  buildYrTabs();
+
+  const R=simulate(),L=119;
+  const tR0=R.st[0]+R.ot[0],tRL=R.st[L]+R.ot[L];
+  const npv=TIERS.reduce((s,t)=>s+R.u[t][0]*R.ltv[t][L],0);
+
+  // User KPIs (prominent)
+  const tierBreakdown0=TIERS.map(t=>`<span style="color:${TC[t]}">${t}: ${fN(R.u[t][0])}</span>`).join(' · ');
+  const tierBreakdownL=TIERS.map(t=>`<span style="color:${TC[t]}">${t}: ${fN(R.u[t][L])}</span>`).join(' · ');
+  $('kpis-users').innerHTML=`
+    <div class="kpi big" style="border-color:var(--accent)"><div class="l">👥 Total Users (M0)</div><div class="n" style="color:var(--accent2)">${fN(R.tu[0])}</div><div class="s">${tierBreakdown0}</div></div>
+    <div class="kpi big" style="border-color:var(--accent)"><div class="l">👥 Total Users (Yr10)</div><div class="n" style="color:var(--accent2)">${fN(R.tu[L])}</div><div class="s">${tierBreakdownL}</div></div>
+    <div class="kpi big"><div class="l">ARPU M0</div><div class="n">$${R.arpu[0].toFixed(2)}</div><div class="s">Yr10: $${R.arpu[L].toFixed(2)}</div></div>
+    <div class="kpi big"><div class="l">10yr NPV</div><div class="n">${fmt(npv)}</div><div class="s">U: $${R.ltv["Ultra"][L].toFixed(0)} · P: $${R.ltv["Pro"][L].toFixed(0)}</div></div>`;
+
+  // Financial KPIs
+  $('kpis-fin').innerHTML=`
+    <div class="kpi"><div class="l">M0 Churn</div><div class="n">${R.m0cp.toFixed(1)}%</div><div class="s">Migration losses</div></div>
+    <div class="kpi"><div class="l">Rev M0</div><div class="n">${fmt(tR0)}</div><div class="s">/month</div></div>
+    <div class="kpi"><div class="l">ARR Yr10</div><div class="n">${fmt(R.arr[L])}</div><div class="s">vs M0: ${fmt(R.arr[0])}</div></div>
+    <div class="kpi"><div class="l">GM M0</div><div class="n" style="color:${R.bgm[0]>=0?'var(--green)':'var(--red)'}">${R.bgm[0].toFixed(1)}%</div><div class="s">Yr10: ${R.bgm[L].toFixed(1)}%</div></div>
+    <div class="kpi"><div class="l">GM Δ</div><div class="n" style="color:var(--green)">+${(R.bgm[L]-R.bgm[0]).toFixed(1)}pp</div><div class="s">M0→Yr10</div></div>
+    <div class="kpi"><div class="l">Overage Share Yr10</div><div class="n">${R.ovShare[L].toFixed(1)}%</div><div class="s">M0: ${R.ovShare[0].toFixed(1)}%</div></div>`;
+
+  // ── Principles Checklist ──
+  const ltvEnd=TIERS.map(t=>R.ltv[t][L]);
+  const annGM={}; TIERS.forEach(t=>{annGM[t]=toAnnual(R.gm[t],'avg');});
+  const annARPU={}; TIERS.forEach(t=>{annARPU[t]=toAnnual(R.rpu[t],'avg');});
+
+  // LTV at year 5 (month 59)
+  const ltv5=TIERS.map(t=>R.ltv[t][59]);
+  const p1=TIERS.every((_,i)=>ltv5[i]>0);
+  const p1d=p1?'All tiers positive by Yr5':TIERS.filter((_,i)=>ltv5[i]<=0).map(t=>`${t}: $${R.ltv[t][59].toFixed(0)} at Yr5`).join(', ')+' — must be positive by year 5';
+
+  const p2=ltvEnd[3]>ltvEnd[2]&&ltvEnd[2]>ltvEnd[1]&&ltvEnd[1]>ltvEnd[0];
+  const p2d=p2?`U $${ltvEnd[3].toFixed(0)} > M $${ltvEnd[2].toFixed(0)} > P+ $${ltvEnd[1].toFixed(0)} > P $${ltvEnd[0].toFixed(0)}`
+    :`Actual: ${TIERS.map((t,i)=>`${t} $${ltvEnd[i].toFixed(0)}`).join(', ')}`;
+
+  const p3=annGM["Pro"][0]>annGM["Pro+"][0]&&annGM["Pro+"][0]>annGM["Max"][0]&&annGM["Max"][0]>annGM["Ultra"][0];
+  const p3d=p3?`Yr1: P ${annGM["Pro"][0].toFixed(0)}% > P+ ${annGM["Pro+"][0].toFixed(0)}% > M ${annGM["Max"][0].toFixed(0)}% > U ${annGM["Ultra"][0].toFixed(0)}%`
+    :`Yr1: ${TIERS.map(t=>`${t} ${annGM[t][0].toFixed(0)}%`).join(', ')}`;
+
+  const r0=TIERS.map(t=>S.skus[t].eYr1/S.skus[t].p);
+  const p4=r0[3]>r0[2]&&r0[2]>r0[1]&&r0[1]>r0[0];
+  const p4d=p4?`U ${r0[3].toFixed(1)}× > M ${r0[2].toFixed(1)}× > P+ ${r0[1].toFixed(1)}× > P ${r0[0].toFixed(1)}×`
+    :`${TIERS.map((t,i)=>`${t} ${r0[i].toFixed(1)}×`).join(', ')}`;
+
+  const p5=TIERS.every(t=>S.skus[t].eGrow>=0);
+  const p5d=p5?'All tiers: ratio growing (eGrow ≥ 0%)':TIERS.filter(t=>S.skus[t].eGrow<0).join(', ')+' has negative growth';
+
+  const p6=TIERS.every(t=>S.skus[t].ovPctYr10>=S.skus[t].ovPctYr1);
+  const p6d=p6?'All tiers: overage % growing Yr1→Yr10':TIERS.filter(t=>S.skus[t].ovPctYr10<S.skus[t].ovPctYr1).join(', ')+' declining';
+
+  const ov0=TIERS.map(t=>S.skus[t].ovPctYr1);
+  const p7=ov0[3]>ov0[2]&&ov0[2]>ov0[1]&&ov0[1]>ov0[0];
+  const p7d=p7?`U ${ov0[3]}% > M ${ov0[2]}% > P+ ${ov0[1]}% > P ${ov0[0]}%`
+    :`${TIERS.map((t,i)=>`${t} ${ov0[i]}%`).join(', ')}`;
+
+  const arpu0=TIERS.map(t=>annARPU[t][0]);
+  const p8=arpu0[3]>arpu0[2]&&arpu0[2]>arpu0[1]&&arpu0[1]>arpu0[0];
+  const p8d=p8?`U $${arpu0[3].toFixed(0)} > M $${arpu0[2].toFixed(0)} > P+ $${arpu0[1].toFixed(0)} > P $${arpu0[0].toFixed(0)}`
+    :`${TIERS.map((t,i)=>`${t} $${arpu0[i].toFixed(0)}`).join(', ')}`;
+
+  // Check Pro GM never negative
+  const proGMmin=Math.min(...annGM["Pro"]);
+  const p9=proGMmin>0;
+  const p9d=p9?`Pro GM min: ${proGMmin.toFixed(1)}% (always positive)`:`Pro GM goes to ${proGMmin.toFixed(1)}%`;
+
+  // Check users always grow
+  let usersAlwaysGrow=true;
+  for(let i=1;i<R.tu.length;i++){if(R.tu[i]<R.tu[i-1]){usersAlwaysGrow=false;break;}}
+  const p10=usersAlwaysGrow;
+  const p10d=p10?`${fN(R.tu[0])} → ${fN(R.tu[L])} (monotonically increasing)`:'Users declined at some point';
+
+  // Check ARPU increases over time
+  const arpuAnn=toAnnual(R.arpu,'avg');
+  let arpuIncreasing=true;for(let i=1;i<arpuAnn.length;i++){if(arpuAnn[i]<arpuAnn[i-1]*0.99){arpuIncreasing=false;break;}}
+  const p11=arpuIncreasing;
+  const p11d=p11?`$${arpuAnn[0].toFixed(2)} → $${arpuAnn[9].toFixed(2)} (growing)`:`ARPU not monotonically increasing`;
+
+  const allChecks=[[p1,'Every tier positive LTV by Yr5',p1d],[p2,'LTV: Ultra > Max > Pro+ > Pro',p2d],[p3,'GM: Pro > Pro+ > Max > Ultra',p3d],[p4,'Entitlement ratio: Ultra > Max > Pro+ > Pro',p4d],[p5,'Entitlement/Price ratio grows over time',p5d],[p6,'Overage % increases over time',p6d],[p7,'Overage: Ultra > Max > Pro+ > Pro',p7d],[p8,'ARPU: Ultra > Max > Pro+ > Pro',p8d],[p9,'Pro GM never negative',p9d],[p10,'Users always grow',p10d],[p11,'ARPU increases over time',p11d]];
+  const allPass=allChecks.every(c=>c[0]);
+  $('principles-checklist').innerHTML=`<div class="checklist">
+    <div class="checklist-title">${allPass?'✅':'⚠️'} Principles Checklist (${allChecks.filter(c=>c[0]).length}/${allChecks.length})</div>
+    ${allChecks.map(([ok,lbl,detail])=>`<div class="check-item">
+      <span class="check-icon" style="color:${ok?'var(--green)':'var(--red)'}">${ok?'✓':'✗'}</span>
+      <span class="check-label" style="color:${ok?'var(--green)':'var(--red)'}">${lbl}</span>
+      <span class="check-detail">${detail}</span>
+    </div>`).join('')}
+  </div>`;
+
+  const ln={tension:.4,pointRadius:0,borderWidth:2};
+  const f$=v=>fmt(v),fp=v=>v.toFixed(0)+'%',fu=v=>fN(v),fm=v=>'$'+v.toFixed(0);
+  const d=(arr,mode)=>toAnnual(arr,mode);
+  const labels=YR_LABELS;
+  const mxT=10;
+
+  // Users
+  ch('c1','bar',TIERS.map(t=>({label:t,data:d(R.u[t],'last'),backgroundColor:TC[t]+'cc',stack:'a',borderRadius:2})),fu,{stacked:true,tipFmt:v=>fN(v),labels,maxX:mxT,labelFmt:v=>fN(v)});
+
+  const totalChurnedPerMonth=R.churnedOut["Pro"].map((_,i)=>TIERS.reduce((s,t)=>s+(R.churnedOut[t][i]||0),0));
+  const netGrowth=R.newUsers.map((v,i)=>v-totalChurnedPerMonth[i]);
+  ch('c2','bar',[
+    {label:'New Acquisitions',data:d(R.newUsers,'sum'),backgroundColor:'#4ade80aa',stack:'a',borderRadius:2},
+    {label:'Churned Out',data:d(totalChurnedPerMonth,'sum').map(v=>-v),backgroundColor:'#f8717166',stack:'a',borderRadius:2},
+    {label:'Net',data:d(netGrowth,'sum'),type:'line',borderColor:'#fff',borderWidth:2,pointRadius:3,tension:.4,_showLabels:true},
+  ],fu,{stacked:true,tipFmt:v=>(v>=0?'+':'')+fN(v),labels,maxX:mxT});
+
+  ch('c3','line',[
+    ...TIERS.map(t=>({label:t,data:d(R.cr[t],'avg'),borderColor:TC[t],...ln,pointRadius:3})),
+    {label:'Blended',data:d(R.crAll,'avg'),borderColor:'#fff',borderDash:[4,3],...ln,borderWidth:1.5,pointRadius:3},
+  ],v=>v.toFixed(1)+'%',{tipFmt:v=>v.toFixed(2)+'%',labels,maxX:mxT});
+
+  ch('c4','line',[
+    {label:'P→P+',data:d(R.up.pp,'avg'),borderColor:TC["Pro+"],...ln,pointRadius:3},
+    {label:'P+→M',data:d(R.up.mx,'avg'),borderColor:TC["Max"],...ln,pointRadius:3},
+    {label:'M→U',data:d(R.up.ul,'avg'),borderColor:TC["Ultra"],...ln,pointRadius:3},
+  ],v=>v.toFixed(1)+'%',{tipFmt:v=>v.toFixed(2)+'%',labels,maxX:mxT});
+
+  // Financials
+  const mulTier=revViewTier==='arr'?12:1;
+  const mulType=revViewType==='arr'?12:1;
+  $('rev-toggle-tier').innerHTML=`<button class="mini-tab${revViewTier==='arr'?' on':''}" onclick="revViewTier='arr';render()">ARR</button><button class="mini-tab${revViewTier==='monthly'?' on':''}" onclick="revViewTier='monthly';render()">In Period</button>`;
+  $('rev-toggle-type').innerHTML=`<button class="mini-tab${revViewType==='arr'?' on':''}" onclick="revViewType='arr';render()">ARR</button><button class="mini-tab${revViewType==='monthly'?' on':''}" onclick="revViewType='monthly';render()">In Period</button>`;
+
+  const revByTierM=TIERS.map(t=>R.sr[t].map((v,i)=>(v+R.or[t][i])*mulTier));
+  ch('c5','bar',TIERS.map((t,ti)=>({label:t,data:d(revByTierM[ti],revViewTier==='arr'?'last':'sum'),backgroundColor:TC[t]+'cc',stack:'a',borderRadius:2})),f$,{stacked:true,tipFmt:v=>fmt(v),labels,maxX:mxT,labelFmt:v=>fmt(v)});
+
+  ch('c5b','bar',[
+    {label:'Subscription',data:d(R.st.map(v=>v*mulType),revViewType==='arr'?'last':'sum'),backgroundColor:'#16a34acc',stack:'a',borderRadius:2},
+    {label:'Overage',data:d(R.ot.map(v=>v*mulType),revViewType==='arr'?'last':'sum'),backgroundColor:'#4ade80aa',stack:'a',borderRadius:2},
+  ],f$,{stacked:true,tipFmt:v=>fmt(v),labels,maxX:mxT});
+
+  const totalGP=R.gp["Pro"].map((_,i)=>TIERS.reduce((s,t)=>s+R.gp[t][i],0));
+  ch('c6','bar',[
+    ...TIERS.map(t=>({label:t,data:d(R.gp[t],'sum'),backgroundColor:TC[t]+'cc',stack:'a',borderRadius:2})),
+    {label:'Total GP',data:d(totalGP,'sum'),type:'line',borderColor:'#fff',borderWidth:2,pointRadius:4,tension:.4,_showLabels:true},
+  ],f$,{stacked:true,tipFmt:v=>fmt(v),labels,maxX:mxT,labelFmt:v=>fmt(v)});
+
+  ch('c7','line',[
+    {label:'Blended GM',data:d(R.bgm,'avg'),borderColor:'#8b7cf7',...ln,borderWidth:2.5,pointRadius:4,_showLabels:true},
+    {label:'Breakeven',data:Array(10).fill(0),borderColor:'#f87171',borderDash:[5,3],pointRadius:0,borderWidth:1},
+  ],fp,{tipFmt:v=>v.toFixed(1)+'%',labels,maxX:mxT,labelFmt:v=>v.toFixed(0)+'%'});
+
+  // Unit econ
+  ch('c8','line',[
+    {label:'Blended ARPU',data:d(R.arpu,'avg'),borderColor:'#8b7cf7',...ln,borderWidth:2.5,pointRadius:4,_showLabels:true},
+    ...TIERS.map(t=>({label:t,data:d(R.rpu[t],'avg'),borderColor:TC[t],...ln,borderWidth:1.5,pointRadius:3,_showLabels:true})),
+  ],fm,{tipFmt:v=>'$'+v.toFixed(2),labels,maxX:mxT,labelFmt:v=>'$'+v.toFixed(0)});
+  ch('c9','line',TIERS.map(t=>({label:t,data:d(R.cpu[t],'avg'),borderColor:TC[t],...ln,pointRadius:3,_showLabels:true})),fm,{tipFmt:v=>'$'+v.toFixed(2),labels,maxX:mxT,labelFmt:v=>'$'+v.toFixed(0)});
+  ch('c10','line',TIERS.map(t=>({label:t,data:d(R.gpu[t],'avg'),borderColor:TC[t],...ln,pointRadius:3,_showLabels:true})),fm,{tipFmt:v=>'$'+v.toFixed(2),labels,maxX:mxT,labelFmt:v=>'$'+v.toFixed(0)});
+  ch('c12','line',TIERS.map(t=>({label:t,data:d(R.gm[t],'avg'),borderColor:TC[t],...ln,pointRadius:3,_showLabels:true})),fp,{tipFmt:v=>v.toFixed(1)+'%',labels,maxX:mxT,labelFmt:v=>v.toFixed(0)+'%'});
+
+  // ── Savings vs Subscription-Only ──
+  const savAnn={};TIERS.forEach(t=>{savAnn[t]=toAnnual(R.savPerUser[t],'avg');});
+  const savM0=TIERS.map(t=>R.savPerUser[t][0]);
+  const savL=TIERS.map(t=>R.savPerUser[t][L]);
+
+  $('savings-cards').innerHTML=`<div class="savings-grid">${TIERS.map((t,i)=>{
+    const s0=savM0[i],sL=savL[i];
+    return `<div class="sav-card">
+      <div class="tier" style="color:${TC[t]}">${t}</div>
+      <div class="amt" style="color:var(--green)">+$${sL.toFixed(2)}</div>
+      <div class="sub">savings/user/mo at Yr10</div>
+      <div class="sub" style="margin-top:4px">M0: +$${s0.toFixed(2)} · Old: $${OLD_PRICE[t]}/mo</div>
+    </div>`;
+  }).join('')}</div>`;
+
+  // Savings per user over time
+  ch('sav-chart','line',TIERS.map(t=>({label:t,data:savAnn[t],borderColor:TC[t],...ln,pointRadius:3,_showLabels:true})),fm,{tipFmt:v=>'$'+v.toFixed(2),labels,maxX:mxT,labelFmt:v=>'$'+v.toFixed(0)});
+
+  // Overage revenue share % over time
+  ch('ov-share','line',[
+    {label:'Overage %',data:d(R.ovShare,'avg'),borderColor:'#4ade80',...ln,borderWidth:2.5,pointRadius:4,_showLabels:true,fill:true,backgroundColor:'rgba(74,222,128,.08)'},
+  ],fp,{tipFmt:v=>v.toFixed(1)+'%',labels,maxX:mxT,labelFmt:v=>v.toFixed(1)+'%'});
+
+  // TBB GP vs SubOnly GP comparison (Yr10 snapshot, bar chart per tier)
+  const tbbGP_L=TIERS.map(t=>R.tbbGP[t][L]);
+  const subGP_L=TIERS.map(t=>R.subOnlyGP[t][L]);
+  ch('sav-compare','bar',[
+    {label:'Sub-Only GP/User',data:subGP_L,backgroundColor:'#f8717166',borderRadius:2},
+    {label:'TBB GP/User',data:tbbGP_L,backgroundColor:'#4ade80aa',borderRadius:2},
+  ],fm,{tipFmt:v=>'$'+v.toFixed(2),labels:TIERS,maxX:4,labelFmt:v=>'$'+v.toFixed(0)});
+
+  // Cumulative incremental revenue from overage (total across all tiers)
+  const cumIncRev=[];let cumSum=0;
+  for(let m=0;m<120;m++){
+    cumSum+=R.ot[m];cumIncRev.push(cumSum);
+  }
+  ch('sav-cum','line',[{label:'Cumulative Overage Rev',data:d(cumIncRev,'last'),borderColor:'#4ade80',...ln,borderWidth:2.5,pointRadius:4,fill:true,backgroundColor:'rgba(74,222,128,.08)',_showLabels:true}],f$,{tipFmt:v=>fmt(v),labels,maxX:mxT,labelFmt:v=>fmt(v)});
+
+  // GM-by-usage and LTV
+  const tierCanvasIds={"Pro":"gmu-Pro","Pro+":"gmu-pp","Max":"gmu-Max","Ultra":"gmu-Ultra"};
+  const ltvCanvasIds={"Pro":"ltv-Pro","Pro+":"ltv-pp","Max":"ltv-Max","Ultra":"ltv-Ultra"};
+  TIERS.forEach(t=>{
+    const gmu=gmByUsageForTier(t,selectedYear);
+    const cid=tierCanvasIds[t];
+    dc(cid);
+    const canvas=document.getElementById(cid);if(!canvas)return;
+    const segmentColor=ctx=>{
+      const idx=ctx.p0DataIndex;
+      return gmu.gmLine[idx]>=0?'rgba(74,222,128,.9)':'rgba(248,113,113,.9)';
+    };
+    const c2=new Chart(canvas.getContext('2d'),{type:'line',data:{labels:gmu.labels,datasets:[
+      {label:'GM %',data:gmu.gmLine,segment:{borderColor:segmentColor},backgroundColor:'rgba(139,124,247,.05)',fill:true,tension:.3,pointRadius:0,borderWidth:2,yAxisID:'y'},
+      {label:'Users %',data:gmu.binPct,type:'bar',backgroundColor:'rgba(56,189,248,.2)',borderColor:'transparent',yAxisID:'y1'},
+    ]},options:{
+      responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+ctx.parsed.y.toFixed(1)+'%'}}},
+      scales:{
+        x:{ticks:{color:'#5a6577',font:{size:8},maxTicksLimit:6},grid:{display:false}},
+        y:{ticks:{color:'#5a6577',font:{size:8},callback:v=>v.toFixed(0)+'%'},grid:{color:'rgba(42,49,58,.2)'}},
+        y1:{position:'right',ticks:{color:'#5a6577',font:{size:8},callback:v=>v.toFixed(0)+'%'},grid:{display:false}},
+      },
+    }});
+    c2.config._labelFmt=null;
+    c2.config._noLabels=true;
+    CH[cid]=c2;
+
+    // Per-SKU LTV chart
+    const lid=ltvCanvasIds[t];
+    const ltvData=[0,1,2,3,4,5,6,7,8,9].map(y=>R.ltv[t][Math.min(y*12+11,R.ltv[t].length-1)]);
+    ch(lid,'line',[{label:t+' LTV',data:ltvData,borderColor:TC[t],...ln,borderWidth:2.5,pointRadius:4,_showLabels:true,
+      segment:{borderColor:ctx=>ltvData[ctx.p0DataIndex]>=0&&ltvData[ctx.p1DataIndex]>=0?TC[t]:'rgba(248,113,113,.9)'}
+    }],f$,{tipFmt:v=>'$'+v.toFixed(0),labels:YR_LABELS,maxX:10,labelFmt:v=>fmt(v)});
+  });
+
+  // Assumptions Over Time
+  const entByYr={}; TIERS.forEach(t=>{entByYr[t]=YR_LABELS.map((_,y)=>getE(t,y*12));});
+  const ovByYr={}; TIERS.forEach(t=>{ovByYr[t]=YR_LABELS.map((_,y)=>getOvPct(t,y*12)*100);});
+  ch('a-ent','line',TIERS.map(t=>({label:t,data:entByYr[t],borderColor:TC[t],...ln,pointRadius:3,_showLabels:true})),fm,{labels:YR_LABELS,maxX:10,labelFmt:v=>'$'+Math.round(v)});
+  ch('a-ratio','line',TIERS.map(t=>({label:t,data:entByYr[t].map(e=>e/S.skus[t].p),borderColor:TC[t],...ln,pointRadius:3,_showLabels:true})),v=>v.toFixed(1)+'×',{labels:YR_LABELS,maxX:10,labelFmt:v=>v.toFixed(1)+'×'});
+  ch('a-ov','line',TIERS.map(t=>({label:t,data:ovByYr[t],borderColor:TC[t],...ln,pointRadius:3,_showLabels:true})),v=>v.toFixed(0)+'%',{labels:YR_LABELS,maxX:10,labelFmt:v=>v.toFixed(0)+'%'});
+  ch('a-eff','line',[{label:'COGS Reduction %',data:YR_LABELS.map((_,y)=>((1-effAt(y*12+6))*100)),borderColor:'#4ade80',...ln,pointRadius:3,_showLabels:true}],v=>v.toFixed(0)+'%',{labels:YR_LABELS,maxX:10,labelFmt:v=>v.toFixed(0)+'%'});
+}
+
+function fullBuild(){buildGlobs();buildRocks();buildSku();requestAnimationFrame(()=>{onEdit();});}
+window.addEventListener('load',fullBuild);
+</script>
+</body>
+</html>
