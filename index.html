@@ -171,9 +171,6 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
     <div class="cbox"><h4>Upsell Rate (Monthly)</h4><canvas id="c4"></canvas></div>
   </div>
 
-  <div class="sec-hd">User Walk — Year 1 → Year 2</div>
-  <div class="cbox" style="overflow-x:auto"><table class="exec-table" id="user-walk-table"></table></div>
-
   <div class="sec-hd">Financials</div>
   <div class="row4">
     <div class="cbox">
@@ -483,10 +480,10 @@ function simulate(){
     tu:[],arr:[],bgm:[],st:[],ot:[],
     up:{pp:[],mx:[],ul:[]},
     cr:{},crAll:[],
-    newUsers:[],newByTier:{},churnedOut:{},upsellOut:{},upsellIn:{},
+    newUsers:[],churnedOut:{},
     arpu:[],
     ltv:{}};
-  TIERS.forEach(t=>{R.u[t]=[];R.sr[t]=[];R.or[t]=[];R.cg[t]=[];R.gm[t]=[];R.gp[t]=[];R.cpu[t]=[];R.rpu[t]=[];R.gpu[t]=[];R.cr[t]=[];R.churnedOut[t]=[];R.newByTier[t]=[];R.upsellOut[t]=[];R.upsellIn[t]=[];});
+  TIERS.forEach(t=>{R.u[t]=[];R.sr[t]=[];R.or[t]=[];R.cg[t]=[];R.gm[t]=[];R.gp[t]=[];R.cpu[t]=[];R.rpu[t]=[];R.gpu[t]=[];R.cr[t]=[];R.churnedOut[t]=[];});
   let cp={...pop},tc=Math.round(m0c),te=totalBase;
 
   for(let m=0;m<120;m++){
@@ -502,7 +499,6 @@ function simulate(){
       const effectiveRate=Math.max(curRate, churnRate+0.005); // always grow above churn
       const nw=Math.max(1, Math.round(cp[t]*effectiveRate));
       cp[t]+=nw;te+=nw;totalNewU+=nw;
-      R.newByTier[t].push(nw);
     });
     R.newUsers.push(totalNewU);
 
@@ -553,20 +549,9 @@ function simulate(){
         const upselled=kept*ur;
         np[t]+=kept-upselled;
         np[nt]+=upselled;
-        R.upsellOut[t].push(Math.round(upselled));
-        R.upsellIn[nt]=R.upsellIn[nt]||[];
-        // upsellIn tracked after loop
       } else {
         np[t]+=kept;
-        R.upsellOut[t].push(0);
       }
-    });
-    // Track upsell-in per tier for this month
-    TIERS.forEach(t=>{
-      // upsellIn = sum of upsellOut from tiers that feed into t
-      let inU=0;
-      TIERS.forEach(from=>{if(nxt[from]===t) inU+=R.upsellOut[from][R.upsellOut[from].length-1];});
-      R.upsellIn[t].push(inU);
     });
     tc+=Math.round(mcAll);R.crAll.push(tU>0?mcAll/tU*100:0);cp=np;
   }
@@ -993,55 +978,6 @@ function renderOverview(R){
   ch('a-ratio','line',TIERS.map(t=>({label:t,data:entByYr[t].map(e=>e/S.skus[t].p),borderColor:TC[t],...ln,pointRadius:3,_showLabels:true})),v=>v.toFixed(1)+'×',{labels:YR_LABELS,maxX:10,labelFmt:v=>v.toFixed(1)+'×'});
   ch('a-ov','line',TIERS.map(t=>({label:t,data:ovByYr[t],borderColor:TC[t],...ln,pointRadius:3,_showLabels:true})),v=>v.toFixed(0)+'%',{labels:YR_LABELS,maxX:10,labelFmt:v=>v.toFixed(0)+'%'});
   ch('a-eff','line',[{label:'COGS Reduction %',data:YR_LABELS.map((_,y)=>((1-effAt(y*12+6))*100)),borderColor:'#4ade80',...ln,pointRadius:3,_showLabels:true}],v=>v.toFixed(0)+'%',{labels:YR_LABELS,maxX:10,labelFmt:v=>v.toFixed(0)+'%'});
-
-  // ── User Walk Table: Year 1 → Year 2 ──
-  renderUserWalk(R);
-}
-
-function renderUserWalk(R){
-  // Sum monthly components over Year 1 (months 0-11) and Year 2 (months 12-23)
-  const sumRange=(arr,s,e)=>{let v=0;for(let i=s;i<=e;i++)v+=(arr[i]||0);return Math.round(v);};
-  // Yr1 ending users = R.u[t][11] (snapshot at month 11, after growth before churn — but close enough for annual view)
-  // More precisely: users at start of Yr2 = cp after month 11 churn/upsell
-  // We use R.u[t][12] as the "Yr2 Starting" (snapshot at month 12 after growth) minus new users in month 12
-  // Simplest accurate approach: Yr1 End = Yr2 Start = R.u[t][12] - R.newByTier[t][12]
-  const walk={};
-  let totals={start:0,newU:0,churned:0,upOut:0,upIn:0,end:0};
-  TIERS.forEach(t=>{
-    const yr1End=R.u[t][12]-R.newByTier[t][12]; // users at start of month 12, before growth
-    const yr2End=R.u[t][23]; // snapshot at end of Yr2 (month 23)
-    const newU=sumRange(R.newByTier[t],12,23);
-    const churned=sumRange(R.churnedOut[t],12,23);
-    const upOut=sumRange(R.upsellOut[t],12,23);
-    const upIn=sumRange(R.upsellIn[t],12,23);
-    // Compute implied ending from walk to check tie-out
-    // Note: yr2End from snapshot may differ slightly due to rounding — use it as the truth
-    walk[t]={start:yr1End, newU, churned, upOut, upIn, end:yr2End};
-    totals.start+=yr1End; totals.newU+=newU; totals.churned+=churned;
-    totals.upOut+=upOut; totals.upIn+=upIn; totals.end+=yr2End;
-  });
-
-  const fC=v=>fN(Math.abs(v));
-  const tierHdr=TIERS.map(t=>`<th style="color:${TC[t]}">${t}</th>`).join('');
-  const row=(label,getter,cls,prefix)=>{
-    const vals=TIERS.map(t=>getter(walk[t]));
-    const tot=vals.reduce((s,v)=>s+v,0);
-    return `<tr class="${cls||''}"><td>${label}</td>${vals.map(v=>`<td>${prefix||''}${fC(v)}</td>`).join('')}<td>${prefix||''}${fC(tot)}</td></tr>`;
-  };
-
-  const h=`<thead><tr><th></th>${tierHdr}<th>Total</th></tr></thead><tbody>
-    ${row('Yr1 Ending Users',w=>w.start,'total-row','')}
-    ${row('+ New Users',w=>w.newU,'','+ ')}
-    ${row('− Churned',w=>w.churned,'','− ')}
-    ${row('− Upsell Out',w=>w.upOut,'','− ')}
-    ${row('+ Upsell In',w=>w.upIn,'','+ ')}
-    ${row('= Yr2 Ending Users',w=>w.end,'total-row','')}
-    <tr class=""><td style="color:var(--tx3);font-style:italic">Implied Net Change</td>${TIERS.map(t=>{
-      const w=walk[t],net=w.end-w.start;
-      return `<td class="${net>=0?'pos':'neg'}">${net>=0?'+':''}${fC(net)}</td>`;
-    }).join('')}<td class="${totals.end-totals.start>=0?'pos':'neg'}">${totals.end-totals.start>=0?'+':''}${fC(totals.end-totals.start)}</td></tr>
-  </tbody>`;
-  $('user-walk-table').innerHTML=h;
 }
 
 /* ══ TAB: P&L (from v5) ══ */

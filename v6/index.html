@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TBB Scenario Planner v6 — Master Edition</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.1.0/dist/chartjs-plugin-annotation.min.js"></script>
+<style>
+:root{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#1c2129;--bg4:#21262d;
+  --fg:#e6edf3;--fg2:#8b949e;--fg3:#484f58;
+  --border:#30363d;--border2:#3d444d;
+  --accent:#7b68ee;--accent2:#49ccf9;--teal:#79d9b9;--pink:#fd71af;--orange:#ffb08e;
+  --green:#3fb950;--red:#f85149;--yellow:#d29922;
+  --radius:8px;--shadow:0 1px 3px rgba(0,0,0,.3);
+  --card-bg:#161b22;--card-hover:#1c2129;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--fg);font-size:13px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--fg3);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--fg2)}
+
+.app{display:grid;grid-template-columns:320px 1fr;height:100vh;overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column}
+.brand{padding:16px 20px;border-bottom:1px solid var(--border);text-align:center}
+.brand h1{font-size:16px;font-weight:700;
+  background:linear-gradient(135deg,var(--accent),var(--accent2),var(--teal));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.brand .sub{font-size:11px;color:var(--fg2);margin-top:2px}
+
+.scenario-bar{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.scenario-bar select,.scenario-bar button{font-size:11px;padding:4px 8px;border-radius:4px;border:1px solid var(--border);
+  background:var(--bg3);color:var(--fg);cursor:pointer}
+.scenario-bar button:hover{background:var(--bg4)}
+.scenario-bar .badge{font-size:10px;padding:2px 6px;border-radius:10px;background:var(--accent);color:#fff;margin-left:4px}
+
+.preset-row{padding:8px 14px;border-bottom:1px solid var(--border);display:flex;gap:4px;flex-wrap:wrap}
+.preset-row button{font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:var(--bg3);color:var(--fg);cursor:pointer}
+.preset-row button:hover{background:var(--accent);color:#fff}
+.preset-row button.active{background:var(--accent);color:#fff}
+
+.saved-list{padding:6px 14px;border-bottom:1px solid var(--border);font-size:11px;color:var(--fg2);max-height:100px;overflow-y:auto}
+.saved-list .snap{display:flex;justify-content:space-between;align-items:center;padding:3px 0;cursor:pointer}
+.saved-list .snap:hover{color:var(--fg)}
+.saved-list .snap .del{color:var(--red);cursor:pointer;margin-left:6px}
+
+.accordion{flex:1;overflow-y:auto}
+.acc-section{border-bottom:1px solid var(--border)}
+.acc-header{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;cursor:pointer;user-select:none;font-weight:600;font-size:12px}
+.acc-header:hover{background:var(--bg3)}
+.acc-header .arrow{transition:transform .2s}
+.acc-header .arrow.open{transform:rotate(90deg)}
+.acc-header .sec-badge{font-size:10px;padding:1px 6px;border-radius:8px;background:var(--bg4);color:var(--fg2);font-weight:400}
+.acc-body{display:none;padding:8px 14px 12px}
+.acc-body.open{display:block}
+
+.input-group{margin-bottom:8px}
+.input-group label{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--fg2);margin-bottom:2px}
+.input-group label .hint{font-size:10px;color:var(--fg3);font-style:italic}
+.input-group input[type=number],.input-group input[type=text]{width:100%;padding:5px 8px;border:1px solid var(--border);
+  border-radius:4px;background:var(--bg);color:var(--fg);font-size:12px;outline:none;transition:border .2s}
+.input-group input:focus{border-color:var(--accent)}
+.input-group input.warn{border-color:var(--yellow)}
+.input-group input.err{border-color:var(--red)}
+.input-group .ctx{font-size:10px;color:var(--fg3);margin-top:1px}
+
+.rock-toggle{display:flex;align-items:center;gap:8px;padding:6px 0}
+.rock-toggle input[type=checkbox]{accent-color:var(--accent)}
+.rock-toggle .rock-info{font-size:11px}
+.rock-toggle .rock-info .rock-label{font-weight:600;color:var(--fg)}
+.rock-toggle .rock-info .rock-desc{color:var(--fg2);font-size:10px}
+
+/* MAIN */
+.main{overflow-y:auto;display:flex;flex-direction:column;background:var(--bg)}
+
+.tab-bar{display:flex;border-bottom:1px solid var(--border);padding:0 16px;background:var(--bg2);flex-shrink:0;overflow-x:auto}
+.tab-bar button{padding:10px 16px;font-size:12px;color:var(--fg2);border:none;background:none;cursor:pointer;
+  border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s}
+.tab-bar button:hover{color:var(--fg)}
+.tab-bar button.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+.tab-pane{display:none;padding:16px;animation:fadeIn .3s}
+.tab-pane.active{display:block}
+
+.print-btn{position:fixed;bottom:16px;right:16px;z-index:999;padding:8px 16px;border-radius:6px;
+  background:var(--accent);color:#fff;border:none;cursor:pointer;font-size:12px;box-shadow:var(--shadow)}
+.print-btn:hover{opacity:.9}
+
+/* STORY */
+.story{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.story .scard{padding:12px;border-radius:var(--radius);background:var(--card-bg);border-left:3px solid var(--fg3);
+  animation:fadeIn .4s;transition:transform .2s,box-shadow .2s}
+.story .scard:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.story .scard.good{border-left-color:var(--green)}
+.story .scard.highlight{border-left-color:var(--accent)}
+.story .scard.warn{border-left-color:var(--yellow)}
+.story .scard h4{font-size:11px;color:var(--fg2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.story .scard .val{font-size:16px;font-weight:700;margin-bottom:4px}
+.story .scard .desc{font-size:11px;color:var(--fg2);line-height:1.4}
+
+/* CHECKLIST */
+.checklist{margin-bottom:16px;padding:14px;border-radius:var(--radius);background:var(--card-bg);border:1px solid var(--border)}
+.checklist .cl-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.checklist .cl-header h3{font-size:13px}
+.checklist .cl-score{font-size:12px;font-weight:700;padding:3px 10px;border-radius:12px}
+.checklist .cl-score.pass{background:rgba(63,185,80,.15);color:var(--green)}
+.checklist .cl-score.partial{background:rgba(210,153,34,.15);color:var(--yellow)}
+.checklist .cl-score.fail{background:rgba(248,81,73,.15);color:var(--red)}
+.checklist .cl-items{display:grid;grid-template-columns:repeat(2,1fr);gap:4px}
+.checklist .cl-item{font-size:11px;padding:4px 8px;border-radius:4px;display:flex;align-items:center;gap:6px}
+.checklist .cl-item.pass{color:var(--green)}
+.checklist .cl-item.fail{color:var(--red)}
+
+/* CHARTS */
+.row4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.row2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px}
+.cbox{padding:14px;border-radius:var(--radius);background:var(--card-bg);border:1px solid var(--border);
+  animation:fadeIn .4s;transition:transform .2s,box-shadow .2s;position:relative}
+.cbox:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.cbox h4{font-size:11px;color:var(--fg2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.cbox canvas{width:100%!important;max-height:220px}
+.cbox .toggle-row{display:flex;gap:4px;position:absolute;top:10px;right:10px}
+.cbox .toggle-row button{font-size:9px;padding:2px 6px;border-radius:3px;border:1px solid var(--border);background:var(--bg);color:var(--fg2);cursor:pointer}
+.cbox .toggle-row button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* TABLES */
+.tbl-wrap{overflow-x:auto;margin-bottom:16px}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th,td{padding:6px 10px;text-align:right;border-bottom:1px solid var(--border)}
+th{background:var(--bg3);color:var(--fg2);font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.5px;position:sticky;top:0}
+td:first-child,th:first-child{text-align:left}
+tr:hover td{background:rgba(123,104,238,.05)}
+.neg{color:var(--red)}
+.pos{color:var(--green)}
+
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.kpi{padding:14px;border-radius:var(--radius);background:var(--card-bg);border:1px solid var(--border);text-align:center;
+  animation:fadeIn .4s;transition:transform .2s,box-shadow .2s}
+.kpi:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.kpi .kpi-label{font-size:10px;color:var(--fg2);text-transform:uppercase;letter-spacing:.5px}
+.kpi .kpi-val{font-size:22px;font-weight:700;margin:4px 0}
+.kpi .kpi-sub{font-size:10px;color:var(--fg2)}
+
+.invest-card{padding:14px;border-radius:var(--radius);background:var(--card-bg);border:1px solid var(--border);margin-bottom:12px}
+.invest-card h4{font-size:12px;margin-bottom:8px;color:var(--accent)}
+
+/* COMPARE */
+.compare-panel{display:none;position:fixed;top:0;right:0;width:480px;height:100vh;background:var(--bg2);
+  border-left:1px solid var(--border);z-index:1000;overflow-y:auto;padding:16px;box-shadow:-4px 0 20px rgba(0,0,0,.4)}
+.compare-panel.open{display:block}
+.compare-panel h3{margin-bottom:12px;font-size:14px}
+.compare-panel .close-cmp{position:absolute;top:12px;right:12px;background:none;border:none;color:var(--fg);font-size:18px;cursor:pointer}
+.compare-tbl{width:100%;font-size:11px;margin-bottom:12px}
+.compare-tbl th{background:var(--bg3)}
+.compare-tbl .better{color:var(--green)}
+.compare-tbl .worse{color:var(--red)}
+
+/* TOAST */
+.toast{position:fixed;bottom:60px;right:16px;padding:8px 16px;border-radius:6px;background:var(--bg4);color:var(--fg);
+  font-size:12px;z-index:9999;opacity:0;transition:opacity .3s;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.toast.show{opacity:1}
+
+/* ANIMATION */
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* RESPONSIVE */
+@media(max-width:1400px){.row4{grid-template-columns:repeat(2,1fr)}.story{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:900px){.app{grid-template-columns:1fr}.sidebar{display:none}.row4,.row3,.row2{grid-template-columns:1fr}.story{grid-template-columns:1fr}}
+
+/* PRINT */
+@media print{
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  body{background:#fff!important;color:#111!important;overflow:visible!important;height:auto!important}
+  .app{display:block!important;height:auto!important}
+  .sidebar,.print-btn,.tab-bar,.scenario-bar,.preset-row,.saved-list{display:none!important}
+  .main{overflow:visible!important;padding:10px!important;height:auto!important}
+  .tab-pane{display:block!important;page-break-inside:avoid}
+  .kpi,.cbox,.checklist,.invest-card{border:1px solid #ccc!important;background:#f9f9fb!important;break-inside:avoid}
+  .row4{grid-template-columns:repeat(2,1fr)!important}
+  @page{size:landscape;margin:0.5in}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><h1>TBB Scenario Planner</h1><div class="sub">v6 — Master Edition</div></div>
+    <div class="preset-row" id="presetRow"></div>
+    <div class="scenario-bar" id="scenarioBar"></div>
+    <div class="saved-list" id="savedList"></div>
+    <div class="accordion" id="accordion"></div>
+  </aside>
+  <main class="main" id="mainPanel">
+    <div class="tab-bar" id="tabBar"></div>
+    <div id="tabContent"></div>
+  </main>
+</div>
+<div class="compare-panel" id="comparePanel"><button class="close-cmp" onclick="closeCompare()">&times;</button><h3>Scenario Comparison</h3><div id="compareBody"></div></div>
+<button class="print-btn" onclick="window.print()">🖨 Print</button>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== CONSTANTS ===== */
+const DEFAULT_S={provDisc:40,wacc:10,cogsImprove:0.5,
+  rocks:{
+    firstParty:{on:false,pct:20,mo:12,label:'Launch 1P Model',desc:'Ship in-house model, eliminate 3P margin on key workloads'},
+    selfHost:{on:true,pct:15,mo:24,label:'Self-Hosted Inference',desc:'Run partner models on own infra, cut hosting markup'},
+    partnerNeg:{on:false,pct:12,mo:6,label:'Partner Negotiations',desc:'Volume discounts, committed spend deals with providers'},
+  },
+  skus:{
+    "Pro":  {p:10,eYr1:15,eGrow:2,avgUse:16,avgUseGrow:5,ovDisc:0,util:50,dorm:25,grow:2,ret:50,up:15,ovPctYr1:5,ovPctYr10:5},
+    "Pro+": {p:39,eYr1:70,eGrow:2,avgUse:75,avgUseGrow:5,ovDisc:5,util:90,dorm:5,grow:2,ret:60,up:10,ovPctYr1:10,ovPctYr10:10},
+    "Max":  {p:100,eYr1:200,eGrow:2,avgUse:210,avgUseGrow:5,ovDisc:10,util:90,dorm:0,grow:2,ret:70,up:5,ovPctYr1:15,ovPctYr10:15},
+    "Ultra":{p:200,eYr1:500,eGrow:2,avgUse:600,avgUseGrow:20,ovDisc:15,util:95,dorm:0,grow:2,ret:80,up:0,ovPctYr1:50,ovPctYr10:75},
+  }};
+
+const B={subs:{"Pro":942226,"Pro+":143442},costPerPRU:.25,
+  pru:{"Pro":{p0:0,p10:3.6,p25:20,p50:87,p75:229,p90:405,p95:604,p99:2176,p100:50000},
+       "Pro+":{p0:0,p10:43,p25:193,p50:604,p75:1275,p90:2260,p95:3579,p99:10927,p100:100000}}};
+
+const TIERS=["Pro","Pro+","Max","Ultra"];
+const TC={"Pro":"#38bdf8","Pro+":"#8b7cf7","Max":"#34d399","Ultra":"#f472b6"};
+const LABELS=Array.from({length:10},(_,i)=>'Yr'+(i+1));
+
+/* ===== STATE ===== */
+let S=clone(DEFAULT_S);
+const charts={};
+let compareState=null;
+let revMode='arr'; // 'arr' or 'period'
+
+/* ===== HELPERS ===== */
+function clone(o){return JSON.parse(JSON.stringify(o))}
+function el(id){return document.getElementById(id)}
+function tid(t){return t.replace('+','p').replace(' ','_')}
+function fmt(n,d){d=d||0;if(Math.abs(n)>=1e9)return(n/1e9).toFixed(1)+'B';if(Math.abs(n)>=1e6)return(n/1e6).toFixed(1)+'M';if(Math.abs(n)>=1e3)return(n/1e3).toFixed(1)+'K';return n.toFixed(d)}
+function fmtD(n){return'$'+fmt(n)}
+function fmtPct(n){return n.toFixed(1)+'%'}
+function fmtFull(n){return n.toLocaleString('en-US',{maximumFractionDigits:0})}
+function toast(msg){const t=el('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000)}
+
+function toAnnual(arr){
+  const a=[];
+  for(let y=0;y<10;y++){let s=0;for(let m=y*12;m<(y+1)*12&&m<arr.length;m++)s+=arr[m];a.push(s)}
+  return a;
+}
+function annualSnap(arr){return Array.from({length:10},(_,y)=>arr[Math.min((y+1)*12,arr.length-1)])}
+
+/* ===== MODEL ===== */
+function getE(tier,yr,st){st=st||S;const sk=st.skus[tier];return sk.eYr1*Math.pow(1+sk.eGrow/100,yr)}
+function getOvPct(tier,yr,st){st=st||S;const sk=st.skus[tier];const t=Math.min(yr,10)/10;return sk.ovPctYr1+(sk.ovPctYr10-sk.ovPctYr1)*t}
+function getAvgUse(tier,yr,st){st=st||S;const sk=st.skus[tier];return sk.avgUse*Math.pow(1+sk.avgUseGrow/100,yr)}
+function getUtil(tier,st){st=st||S;return st.skus[tier].util/100}
+
+function effAt(month,st){
+  st=st||S;
+  let eff=Math.pow(1-st.cogsImprove/100,month);
+  for(const key of Object.keys(st.rocks)){
+    const r=st.rocks[key];
+    if(r.on&&month>=r.mo){
+      const ramp=Math.min((month-r.mo)/6,1);
+      eff*=(1-r.pct/100*ramp);
+    }
+  }
+  return eff;
+}
+
+function userDist(tier,st){
+  st=st||S;
+  const pru=B.pru[tier]||B.pru["Pro"];
+  const pcts=['p0','p10','p25','p50','p75','p90','p95','p99','p100'];
+  const wts=[10,15,25,25,15,5,4,1];
+  const vals=[];
+  for(let i=0;i<wts.length;i++){
+    vals.push({lo:pru[pcts[i]],hi:pru[pcts[i+1]],w:wts[i]/100});
+  }
+  return vals;
+}
+
+function simulate(st){
+  st=st||S;
+  const M=121;
+  const res={months:M,tiers:{}};
+  TIERS.forEach(t=>{
+    res.tiers[t]={users:new Float64Array(M),subRev:new Float64Array(M),ovRev:new Float64Array(M),
+      totalRev:new Float64Array(M),cogs:new Float64Array(M),gp:new Float64Array(M),
+      margin:new Float64Array(M),ltvCum:new Float64Array(M),
+      churnR:new Float64Array(M),growR:new Float64Array(M)};
+  });
+
+  // M0 users
+  TIERS.forEach(t=>{res.tiers[t].users[0]=B.subs[t]||0});
+
+  for(let m=0;m<M;m++){
+    const yr=m/12;
+    const eff=effAt(m,st);
+    const disc=1-st.provDisc/100;
+
+    TIERS.forEach((t,ti)=>{
+      const sk=st.skus[t];
+      const u=res.tiers[t].users[m];
+
+      // Revenue
+      const subRev=u*sk.p;
+      const ovPct=getOvPct(t,yr,st)/100;
+      const denom=Math.max(1-ovPct,0.01);
+      const ovGross=subRev*ovPct/denom;
+      const ovRev=ovGross*(1-sk.ovDisc/100);
+      const totalRev=subRev+ovRev;
+
+      // COGS
+      const dormRate=sk.dorm/100;
+      const utilRate=sk.util/100;
+      const active=u*(1-dormRate);
+      const avgUse=getAvgUse(t,yr,st);
+      const cogs=active*avgUse*utilRate*B.costPerPRU*eff*disc;
+
+      const gp=totalRev-cogs;
+      const margin=totalRev>0?gp/totalRev*100:0;
+
+      res.tiers[t].subRev[m]=subRev;
+      res.tiers[t].ovRev[m]=ovRev;
+      res.tiers[t].totalRev[m]=totalRev;
+      res.tiers[t].cogs[m]=cogs;
+      res.tiers[t].gp[m]=gp;
+      res.tiers[t].margin[m]=margin;
+
+      // LTV cumulative discounted GP per user
+      const waccM=Math.pow(1+st.wacc/100/12,m);
+      const gppu=u>0?gp/u:0;
+      res.tiers[t].ltvCum[m]=(m>0?res.tiers[t].ltvCum[m-1]:0)+gppu/waccM;
+
+      // Next month users
+      if(m<M-1){
+        const annRet=sk.ret/100;
+        const mChurn=1-Math.pow(annRet,1/12);
+        const baseGrow=sk.grow/100;
+        const decel=Math.pow(0.995,m);
+        const growRate=Math.max(baseGrow*decel,mChurn+0.005);
+
+        const mUp=sk.up/100/12;
+
+        res.tiers[t].churnR[m]=mChurn;
+        res.tiers[t].growR[m]=growRate;
+
+        const retained=u*(1-mChurn);
+        const grown=u*growRate;
+        const upOut=retained*mUp;
+
+        const next=Math.max(0,retained-upOut+grown);
+        res.tiers[t].users[m+1]=(res.tiers[t].users[m+1]||0)+next;
+        if(ti<TIERS.length-1){
+          res.tiers[TIERS[ti+1]].users[m+1]=(res.tiers[TIERS[ti+1]].users[m+1]||0)+upOut;
+        }
+      }
+    });
+  }
+  return res;
+}
+
+function gmByUsageForTier(tier,yr,st){
+  st=st||S;
+  const sk=st.skus[tier];
+  const eff=effAt(yr*12,st);
+  const disc=1-st.provDisc/100;
+  const pru=B.pru[tier]||B.pru["Pro"];
+  const pcts=['p0','p10','p25','p50','p75','p90','p95','p99','p100'];
+  const ovPct=getOvPct(tier,yr,st)/100;
+  const denom=Math.max(1-ovPct,0.01);
+  const subRev=sk.p;
+  const ovRev=subRev*ovPct/denom*(1-sk.ovDisc/100);
+  const totalRev=subRev+ovRev;
+
+  return pcts.map(p=>{
+    const usage=pru[p];
+    const cost=usage*B.costPerPRU*eff*disc;
+    const gm=totalRev>0?(totalRev-cost)/totalRev*100:-100;
+    return{percentile:p,usage:usage,cost:cost,rev:totalRev,gm:gm};
+  });
+}
+
+function runWithOverrides(fn){
+  const st=clone(S);
+  fn(st);
+  return simulate(st);
+}
+
+/* ===== CHART HELPERS ===== */
+const dlPlugin={
+  id:'dlPlugin',
+  afterDatasetsDraw:function(chart){
+    const ctx=chart.ctx;
+    chart.data.datasets.forEach(function(ds,di){
+      if(ds._nolabel)return;
+      const meta=chart.getDatasetMeta(di);
+      if(!meta.visible)return;
+      meta.data.forEach(function(el2,i){
+        if(ds.data[i]==null)return;
+        const v=ds.data[i];
+        if(Math.abs(v)<0.01)return;
+        ctx.save();
+        ctx.fillStyle=ds.borderColor||ds.backgroundColor||'#fff';
+        ctx.font='bold 9px sans-serif';
+        ctx.textAlign='center';
+        ctx.textBaseline='bottom';
+        ctx.fillText(fmt(v,1),el2.x,el2.y-4);
+        ctx.restore();
+      });
+    });
+  }
+};
+
+function ch(id,cfg){
+  if(charts[id]){charts[id].destroy();delete charts[id]}
+  const cvs=document.getElementById(id);
+  if(!cvs)return null;
+  cfg.options=cfg.options||{};
+  cfg.options.responsive=true;
+  cfg.options.maintainAspectRatio=false;
+  cfg.options.animation={duration:400};
+  const s=cfg.options.scales||{};
+  for(const ax of Object.values(s)){
+    ax.ticks=ax.ticks||{};
+    ax.ticks.color='#8b949e';
+    ax.ticks.font={size:9};
+    ax.grid=ax.grid||{};
+    ax.grid.color='rgba(48,54,61,.5)';
+    ax.border=ax.border||{};
+    ax.border.color='#30363d';
+  }
+  cfg.options.plugins=cfg.options.plugins||{};
+  cfg.options.plugins.legend=cfg.options.plugins.legend||{labels:{color:'#8b949e',font:{size:10},boxWidth:10,padding:8},position:'bottom'};
+  cfg.options.plugins.tooltip=cfg.options.plugins.tooltip||{backgroundColor:'#21262d',titleColor:'#e6edf3',bodyColor:'#e6edf3',borderColor:'#30363d',borderWidth:1};
+  cfg.plugins=cfg.plugins||[];
+  charts[id]=new Chart(cvs,cfg);
+  return charts[id];
+}
+
+function zeroLine(axis,label){
+  return{type:'line',scaleID:axis||'y',value:0,borderColor:'rgba(248,81,73,.5)',borderWidth:1,borderDash:[4,4],
+    label:{display:!!label,content:label||'',position:'start',backgroundColor:'rgba(248,81,73,.7)',color:'#fff',font:{size:9}}};
+}
+function targetLine(axis,val,label,color){
+  return{type:'line',scaleID:axis||'y',value:val,borderColor:color||'rgba(63,185,80,.5)',borderWidth:1,borderDash:[4,4],
+    label:{display:!!label,content:label||'',position:'end',backgroundColor:color||'rgba(63,185,80,.7)',color:'#fff',font:{size:9}}};
+}
+
+/* ===== UI BUILD ===== */
+const TABS=['Overview','P&L & Revenue','Unit Economics','Investment & Payback','Sensitivity'];
+
+function buildUI(){
+  // Presets
+  const presets=[
+    {name:'Default',fn:()=>clone(DEFAULT_S)},
+    {name:'Conservative',fn:()=>{const s=clone(DEFAULT_S);TIERS.forEach(t=>{s.skus[t].grow=1;s.skus[t].ret=Math.max(s.skus[t].ret-10,30);s.skus[t].ovPctYr10=Math.max(s.skus[t].ovPctYr10-5,0)});s.cogsImprove=0.3;return s}},
+    {name:'Aggressive',fn:()=>{const s=clone(DEFAULT_S);TIERS.forEach(t=>{s.skus[t].grow=4;s.skus[t].ret=Math.min(s.skus[t].ret+10,95);s.skus[t].ovPctYr10=s.skus[t].ovPctYr10+5});s.cogsImprove=1;s.rocks.firstParty.on=true;s.rocks.partnerNeg.on=true;return s}},
+    {name:'Match Anthropic',fn:()=>{const s=clone(DEFAULT_S);s.skus["Pro"].p=20;s.skus["Pro+"].p=50;s.skus["Max"].p=150;s.skus["Ultra"].p=300;s.rocks.firstParty.on=true;s.rocks.partnerNeg.on=true;return s}}
+  ];
+  const pr=el('presetRow');
+  presets.forEach((p,i)=>{
+    const btn=document.createElement('button');
+    btn.textContent=p.name;
+    btn.onclick=()=>{S=p.fn();buildAccordion();updateAll();toast('Loaded: '+p.name);
+      pr.querySelectorAll('button').forEach(b=>b.classList.remove('active'));btn.classList.add('active')};
+    if(i===0)btn.classList.add('active');
+    pr.appendChild(btn);
+  });
+
+  // Scenario bar
+  const sb=el('scenarioBar');
+  sb.innerHTML='<input type="text" id="snapName" placeholder="Scenario name" style="flex:1;min-width:80px;padding:4px 6px;border-radius:4px;border:1px solid var(--border);background:var(--bg);color:var(--fg);font-size:11px">'+
+    '<button onclick="saveScenario()">💾 Save</button><button onclick="openCompare()">📊 Compare</button><span class="badge" id="autoBadge">Autosaved</span>';
+
+  // Tabs
+  const tb=el('tabBar');
+  TABS.forEach((t,i)=>{
+    const btn=document.createElement('button');
+    btn.textContent=t;
+    btn.className=i===0?'active':'';
+    btn.onclick=()=>{
+      tb.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+      el('tab'+i).classList.add('active');
+    };
+    tb.appendChild(btn);
+  });
+
+  // Tab panes
+  const tc=el('tabContent');
+  TABS.forEach((_,i)=>{
+    const pane=document.createElement('div');
+    pane.className='tab-pane'+(i===0?' active':'');
+    pane.id='tab'+i;
+    tc.appendChild(pane);
+  });
+
+  buildAccordion();
+  buildOverviewTab();
+  buildPnlTab();
+  buildUnitEconTab();
+  buildInvestTab();
+  buildSensitivityTab();
+  renderSavedList();
+  loadAutosave();
+}
+
+function buildAccordion(){
+  const acc=el('accordion');
+  acc.innerHTML='';
+
+  // Global
+  acc.innerHTML+=accSection('global','Global Assumptions',`
+    ${inp('provDisc','Provider Discount %',S.provDisc,'Discount on compute costs')}
+    ${inp('wacc','WACC %',S.wacc,'Weighted avg cost of capital')}
+    ${inp('cogsImprove','COGS Improve %/mo',S.cogsImprove,'Monthly efficiency gain')}
+  `,fmtPct(S.provDisc)+' disc');
+
+  // Rocks
+  let rocksHtml='';
+  for(const[k,r]of Object.entries(S.rocks)){
+    rocksHtml+=`<div class="rock-toggle">
+      <input type="checkbox" id="rock_${k}" ${r.on?'checked':''} onchange="S.rocks['${k}'].on=this.checked;updateAll();autoSave()">
+      <div class="rock-info"><div class="rock-label">${r.label}</div><div class="rock-desc">${r.desc}</div>
+      ${inp('rock_'+k+'_pct','Reduction %',r.pct,'',true)} ${inp('rock_'+k+'_mo','Month',r.mo,'',true)}
+      </div></div>`;
+  }
+  acc.innerHTML+=accSection('rocks','Big Rocks',rocksHtml,Object.values(S.rocks).filter(r=>r.on).length+' active');
+
+  // SKUs
+  TIERS.forEach(t=>{
+    const sk=S.skus[t];
+    const id=tid(t);
+    const valRatio=(sk.avgUse*B.costPerPRU/sk.p*100).toFixed(0);
+    const ovGM=((1-sk.ovDisc/100)*100).toFixed(0);
+    const retQ=sk.ret>=70?'Strong':sk.ret>=50?'Moderate':'Weak';
+    acc.innerHTML+=accSection('sku_'+id,t+' SKU',`
+      <div class="ctx" style="margin-bottom:8px">Value ratio: ${valRatio}% · Overage GM: ${ovGM}% · Retention: ${retQ}</div>
+      ${inp('sku_'+id+'_p','Price $/mo',sk.p)}
+      ${inp('sku_'+id+'_eYr1','Eff. PRU Yr1',sk.eYr1)}
+      ${inp('sku_'+id+'_eGrow','Eff. Grow %/yr',sk.eGrow)}
+      ${inp('sku_'+id+'_avgUse','Avg PRU Use',sk.avgUse)}
+      ${inp('sku_'+id+'_avgUseGrow','Avg Use Grow %/yr',sk.avgUseGrow)}
+      ${inp('sku_'+id+'_ovDisc','Overage Disc %',sk.ovDisc)}
+      ${inp('sku_'+id+'_util','Utilization %',sk.util)}
+      ${inp('sku_'+id+'_dorm','Dormant %',sk.dorm)}
+      ${inp('sku_'+id+'_grow','Growth %/mo',sk.grow)}
+      ${inp('sku_'+id+'_ret','Retention %/yr',sk.ret)}
+      ${inp('sku_'+id+'_up','Upsell %/yr',sk.up)}
+      ${inp('sku_'+id+'_ovPctYr1','Overage % Yr1',sk.ovPctYr1)}
+      ${inp('sku_'+id+'_ovPctYr10','Overage % Yr10',sk.ovPctYr10)}
+    `,'$'+sk.p+'/mo');
+  });
+
+  // Wire events
+  setTimeout(wireInputs,0);
+}
+
+function accSection(id,title,body,badge){
+  return `<div class="acc-section"><div class="acc-header" onclick="toggleAcc('${id}')">
+    <span>${title}</span><span><span class="sec-badge">${badge||''}</span> <span class="arrow" id="arrow_${id}">▸</span></span>
+  </div><div class="acc-body" id="acc_${id}">${body}</div></div>`;
+}
+
+function toggleAcc(id){
+  const body=el('acc_'+id);
+  const arrow=el('arrow_'+id);
+  if(body.classList.contains('open')){body.classList.remove('open');arrow.classList.remove('open')}
+  else{body.classList.add('open');arrow.classList.add('open')}
+}
+
+function inp(id,label,val,hint,compact){
+  return `<div class="input-group" ${compact?'style="display:inline-block;width:48%;margin-right:2%"':''}>
+    <label>${label}${hint?'<span class="hint">'+hint+'</span>':''}</label>
+    <input type="number" id="inp_${id}" value="${val}" step="any">
+  </div>`;
+}
+
+function wireInputs(){
+  // Global
+  wireInp('provDisc',v=>{S.provDisc=v});
+  wireInp('wacc',v=>{S.wacc=v});
+  wireInp('cogsImprove',v=>{S.cogsImprove=v});
+
+  // Rocks
+  for(const k of Object.keys(S.rocks)){
+    wireInp('rock_'+k+'_pct',v=>{S.rocks[k].pct=v});
+    wireInp('rock_'+k+'_mo',v=>{S.rocks[k].mo=v});
+  }
+
+  // SKUs
+  TIERS.forEach(t=>{
+    const id=tid(t);
+    const fields=['p','eYr1','eGrow','avgUse','avgUseGrow','ovDisc','util','dorm','grow','ret','up','ovPctYr1','ovPctYr10'];
+    fields.forEach(f=>{
+      wireInp('sku_'+id+'_'+f,v=>{S.skus[t][f]=v});
+    });
+  });
+}
+
+function wireInp(id,setter){
+  const inp2=el('inp_'+id);
+  if(!inp2)return;
+  inp2.addEventListener('input',function(){
+    const v=parseFloat(this.value);
+    if(isNaN(v)){this.classList.add('err');return}
+    this.classList.remove('err');
+    if(id.includes('ret')&&(v<0||v>100)){this.classList.add('warn')}
+    else if(id.includes('util')&&(v<0||v>100)){this.classList.add('warn')}
+    else{this.classList.remove('warn')}
+    setter(v);
+    updateAll();
+    autoSave();
+  });
+}
+
+/* ===== TAB BUILDERS ===== */
+function buildOverviewTab(){
+  const p=el('tab0');
+  p.innerHTML=`
+    <div id="storyBox" class="story"></div>
+    <div id="checklistBox"></div>
+    <div class="row4">
+      <div class="cbox"><h4>Users by Tier</h4><canvas id="cUsers" height="200"></canvas></div>
+      <div class="cbox"><h4>User Growth Waterfall</h4><canvas id="cGrowth" height="200"></canvas></div>
+      <div class="cbox"><h4>Monthly Churn %</h4><canvas id="cChurn" height="200"></canvas></div>
+      <div class="cbox"><h4>Upsell Rate</h4><canvas id="cUpsell" height="200"></canvas></div>
+    </div>
+    <div class="row4">
+      <div class="cbox"><h4>Revenue by Tier</h4>
+        <div class="toggle-row"><button class="active" onclick="setRevMode('arr',this)">ARR</button><button onclick="setRevMode('period',this)">Period</button></div>
+        <canvas id="cRev" height="200"></canvas></div>
+      <div class="cbox"><h4>Sub vs Overage</h4>
+        <div class="toggle-row"><button class="active" onclick="setSubOvMode('arr',this)">ARR</button><button onclick="setSubOvMode('period',this)">Period</button></div>
+        <canvas id="cSubOv" height="200"></canvas></div>
+      <div class="cbox"><h4>Gross Profit by Tier</h4><canvas id="cGP" height="200"></canvas></div>
+      <div class="cbox"><h4>Blended Margin %</h4><canvas id="cMargin" height="200"></canvas></div>
+    </div>
+    <div class="row4">
+      <div class="cbox"><h4>ARPU ($/user/mo)</h4><canvas id="cARPU" height="200"></canvas></div>
+      <div class="cbox"><h4>COGS per User</h4><canvas id="cCOGS" height="200"></canvas></div>
+      <div class="cbox"><h4>Gross Profit per User</h4><canvas id="cGPU" height="200"></canvas></div>
+      <div class="cbox"><h4>Gross Margin % by Tier</h4><canvas id="cGMTier" height="200"></canvas></div>
+    </div>
+    <h3 style="color:var(--fg2);font-size:12px;margin:8px 0;text-transform:uppercase;letter-spacing:1px">GM by Usage Level <select id="gmYrSel" style="margin-left:8px;padding:2px 6px;border-radius:4px;border:1px solid var(--border);background:var(--bg);color:var(--fg);font-size:11px">${Array.from({length:10},(_,i)=>'<option value="'+i+'"'+(i===0?' selected':'')+'>Yr'+(i+1)+'</option>').join('')}</select></h3>
+    <div class="row4">${TIERS.map(t=>'<div class="cbox"><h4>'+t+' GM by Usage</h4><canvas id="cGMU_'+tid(t)+'" height="180"></canvas></div>').join('')}</div>
+    <h3 style="color:var(--fg2);font-size:12px;margin:8px 0;text-transform:uppercase;letter-spacing:1px">LTV Journey</h3>
+    <div class="row4">${TIERS.map(t=>'<div class="cbox"><h4>'+t+' LTV</h4><canvas id="cLTV_'+tid(t)+'" height="180"></canvas></div>').join('')}</div>
+    <h3 style="color:var(--fg2);font-size:12px;margin:8px 0;text-transform:uppercase;letter-spacing:1px">Assumptions Over Time</h3>
+    <div class="row4">
+      <div class="cbox"><h4>Efficiency Multiplier</h4><canvas id="cAsmEff" height="180"></canvas></div>
+      <div class="cbox"><h4>Avg PRU Usage</h4><canvas id="cAsmUse" height="180"></canvas></div>
+      <div class="cbox"><h4>Overage % of Rev</h4><canvas id="cAsmOv" height="180"></canvas></div>
+      <div class="cbox"><h4>Cost per PRU (Effective)</h4><canvas id="cAsmCost" height="180"></canvas></div>
+    </div>
+  `;
+  el('gmYrSel').addEventListener('change',()=>renderGMUsage(simulate()));
+}
+
+function buildPnlTab(){
+  el('tab1').innerHTML=`<div id="pnlKPI" class="kpi-row"></div><h3 style="color:var(--fg2);font-size:13px;margin:12px 0">10-Year P&L Summary</h3><div class="tbl-wrap" id="pnlTable"></div>
+    <h3 style="color:var(--fg2);font-size:13px;margin:12px 0">Revenue Detail by Tier</h3><div class="tbl-wrap" id="revDetailTable"></div>`;
+}
+
+function buildUnitEconTab(){
+  el('tab2').innerHTML=`<h3 style="color:var(--fg2);font-size:13px;margin:12px 0">Per-SKU Unit Economics</h3>
+    <div class="row3" id="unitEconCards"></div>`;
+}
+
+function buildInvestTab(){
+  el('tab3').innerHTML=`<div class="row2" id="investCards"></div>
+    <h3 style="color:var(--fg2);font-size:13px;margin:12px 0">Payback Period by Tier</h3><div class="tbl-wrap" id="paybackTable"></div>
+    <div class="cbox" style="margin-top:16px"><h4>Cumulative Gross Profit</h4><canvas id="cCumGP" height="250"></canvas></div>`;
+}
+
+function buildSensitivityTab(){
+  el('tab4').innerHTML=`<h3 style="color:var(--fg2);font-size:13px;margin:12px 0">Sensitivity Analysis</h3>
+    <div class="row2">
+      <div class="cbox"><h4>Tornado — LTV Impact</h4><canvas id="cTornado" height="280"></canvas></div>
+      <div class="cbox"><h4>ARR Sensitivity (Yr5)</h4><canvas id="cARRSens" height="280"></canvas></div>
+    </div>
+    <h3 style="color:var(--fg2);font-size:13px;margin:12px 0">Retention Sensitivity (±5pp)</h3><div class="tbl-wrap" id="retSensTable"></div>
+    <h3 style="color:var(--fg2);font-size:13px;margin:12px 0">Overage Sensitivity (±10pp)</h3><div class="tbl-wrap" id="ovSensTable"></div>
+    <h3 style="color:var(--fg2);font-size:13px;margin:12px 0">Price Sensitivity (±20%)</h3><div class="tbl-wrap" id="priceSensTable"></div>`;
+}
+
+/* ===== RENDER ALL ===== */
+function updateAll(){
+  const d=simulate();
+  renderStory(d);
+  renderChecklist(d);
+  renderOverviewCharts(d);
+  renderGMUsage(d);
+  renderLTV(d);
+  renderAssumptions(d);
+  renderPnl(d);
+  renderUnitEcon(d);
+  renderInvest(d);
+  renderSensitivity(d);
+}
+
+/* ===== STORY ===== */
+function renderStory(d){
+  const box=el('storyBox');
+  if(!box)return;
+  const cards=[];
+
+  // 1. Ultra LTV Story
+  const uLtv=d.tiers["Ultra"].ltvCum;
+  let uBE=-1;
+  for(let m=0;m<uLtv.length;m++){if(uLtv[m]>0){uBE=m;break}}
+  if(uBE>0){
+    const yr=(uBE/12).toFixed(1);
+    cards.push({cls:'good',title:'Ultra LTV Story',val:'Breakeven Yr '+yr,desc:'Ultra reaches positive LTV at month '+uBE+', validating the premium tier investment.'});
+  }else if(uBE===0){
+    cards.push({cls:'good',title:'Ultra LTV Story',val:'Immediately Positive',desc:'Ultra LTV is positive from month 0 — strong unit economics.'});
+  }else{
+    cards.push({cls:'warn',title:'Ultra LTV Story',val:'⚠ No Breakeven',desc:'Ultra never reaches positive LTV in the 10-year window. Review pricing or COGS.'});
+  }
+
+  // 2. Margin Trajectory
+  const m0Margins=TIERS.map(t=>d.tiers[t].margin[0]);
+  const m120Margins=TIERS.map(t=>d.tiers[t].margin[120]);
+  const blendM0=blendedMargin(d,0);
+  const blendM120=blendedMargin(d,120);
+  const mDelta=blendM120-blendM0;
+  cards.push({cls:mDelta>0?'good':'warn',title:'Margin Trajectory',
+    val:fmtPct(blendM0)+' → '+fmtPct(blendM120),
+    desc:'Blended margin '+(mDelta>0?'improves':'declines')+' by '+fmtPct(Math.abs(mDelta))+' over 10 years.'});
+
+  // 3. Revenue Scale
+  const yr1Rev=TIERS.reduce((s,t)=>s+toAnnual(Array.from(d.tiers[t].totalRev))[0],0);
+  const yr10Rev=TIERS.reduce((s,t)=>s+toAnnual(Array.from(d.tiers[t].totalRev))[9],0);
+  const cagr=yr1Rev>0?Math.pow(yr10Rev/yr1Rev,1/9)-1:0;
+  cards.push({cls:'highlight',title:'Revenue Scale',val:fmtD(yr1Rev)+' → '+fmtD(yr10Rev),desc:'ARR CAGR: '+fmtPct(cagr*100)});
+
+  // 4. LTV Hierarchy
+  const ltvs=TIERS.map(t=>({t:t,v:d.tiers[t].ltvCum[120]}));
+  const ordered=ltvs.every((l,i)=>i===0||l.v>=ltvs[i-1].v);
+  cards.push({cls:ordered?'good':'warn',title:'LTV Hierarchy',
+    val:ordered?'✓ Correct':'⚠ Inverted',
+    desc:ltvs.map(l=>l.t+': $'+fmt(l.v,0)).join(' < ')});
+
+  // 5. LTV Breakeven Timeline
+  const beTimes=TIERS.map(t=>{
+    const ltv=d.tiers[t].ltvCum;
+    for(let m=0;m<ltv.length;m++)if(ltv[m]>0)return{t:t,mo:m};
+    return{t:t,mo:-1};
+  });
+  const allBE=beTimes.every(b=>b.mo>=0&&b.mo<=60);
+  cards.push({cls:allBE?'good':'warn',title:'LTV Breakeven Timeline',
+    val:beTimes.map(b=>b.t+': '+(b.mo>=0?'Mo'+b.mo:'Never')).join(' · '),
+    desc:allBE?'All tiers break even within 5 years.':'Some tiers take too long or never break even.'});
+
+  // 6. Ultra Margin Journey
+  const uM0=d.tiers["Ultra"].margin[0];
+  const uM60=d.tiers["Ultra"].margin[60];
+  const uM120=d.tiers["Ultra"].margin[120];
+  cards.push({cls:uM120>0?'good':'warn',title:'Ultra Margin Journey',
+    val:fmtPct(uM0)+' → '+fmtPct(uM60)+' → '+fmtPct(uM120),
+    desc:'Ultra GM at M0 → Yr5 → Yr10. '+(uM120>50?'Strong margins achieved.':uM120>0?'Margins turning positive.':'Margins remain negative.')});
+
+  box.innerHTML=cards.map(c=>`<div class="scard ${c.cls}"><h4>${c.title}</h4><div class="val">${c.val}</div><div class="desc">${c.desc}</div></div>`).join('');
+}
+
+function blendedMargin(d,m){
+  let tr=0,tc=0;
+  TIERS.forEach(t=>{tr+=d.tiers[t].totalRev[m];tc+=d.tiers[t].cogs[m]});
+  return tr>0?(tr-tc)/tr*100:0;
+}
+
+/* ===== CHECKLIST ===== */
+function renderChecklist(d){
+  const box=el('checklistBox');
+  if(!box)return;
+  const checks=[];
+
+  // 1. Positive LTV by Yr5
+  const allLTV5=TIERS.every(t=>d.tiers[t].ltvCum[60]>0);
+  checks.push({pass:allLTV5,text:'Positive LTV by Yr5 (all tiers)'});
+
+  // 2. LTV ordering
+  const ltvOrd=TIERS.every((t,i)=>i===0||d.tiers[t].ltvCum[120]>=d.tiers[TIERS[i-1]].ltvCum[120]);
+  checks.push({pass:ltvOrd,text:'LTV ordering (Pro < Pro+ < Max < Ultra)'});
+
+  // 3. GM ordering
+  const gmOrd=TIERS.every((t,i)=>i===0||d.tiers[t].margin[120]>=d.tiers[TIERS[i-1]].margin[120]);
+  checks.push({pass:gmOrd,text:'GM % ordering at Yr10'});
+
+  // 4. Enterprise ratio ordering
+  const entRatios=TIERS.map(t=>{const sk=S.skus[t];return sk.p>0?(d.tiers[t].totalRev[120]/d.tiers[t].users[120])/sk.p:0});
+  const entOrd=entRatios.every((r,i)=>i===0||r>=entRatios[i-1]);
+  checks.push({pass:entOrd,text:'Enterprise ratio ordering'});
+
+  // 5. Ent ratio growing
+  const entGrow=TIERS.every(t=>{
+    const r1=d.tiers[t].users[12]>0?(d.tiers[t].totalRev[12]/d.tiers[t].users[12]):0;
+    const r10=d.tiers[t].users[120]>0?(d.tiers[t].totalRev[120]/d.tiers[t].users[120]):0;
+    return r10>=r1;
+  });
+  checks.push({pass:entGrow,text:'Enterprise ratio growing over time'});
+
+  // 6. Overage % growing
+  const ovGrow=TIERS.every(t=>{
+    const ov1=d.tiers[t].totalRev[12]>0?d.tiers[t].ovRev[12]/d.tiers[t].totalRev[12]:0;
+    const ov10=d.tiers[t].totalRev[120]>0?d.tiers[t].ovRev[120]/d.tiers[t].totalRev[120]:0;
+    return ov10>=ov1-0.001;
+  });
+  checks.push({pass:ovGrow,text:'Overage % growing over time'});
+
+  // 7. Overage ordering
+  const ovOrd=TIERS.every((t,i)=>{
+    if(i===0)return true;
+    const ov1=d.tiers[t].totalRev[120]>0?d.tiers[t].ovRev[120]/d.tiers[t].totalRev[120]:0;
+    const ov0=d.tiers[TIERS[i-1]].totalRev[120]>0?d.tiers[TIERS[i-1]].ovRev[120]/d.tiers[TIERS[i-1]].totalRev[120]:0;
+    return ov1>=ov0-0.001;
+  });
+  checks.push({pass:ovOrd,text:'Overage % ordering (Pro < Ultra)'});
+
+  // 8. ARPU ordering
+  const arpuOrd=TIERS.every((t,i)=>{
+    if(i===0)return true;
+    const a1=d.tiers[t].users[120]>0?d.tiers[t].totalRev[120]/d.tiers[t].users[120]:0;
+    const a0=d.tiers[TIERS[i-1]].users[120]>0?d.tiers[TIERS[i-1]].totalRev[120]/d.tiers[TIERS[i-1]].users[120]:0;
+    return a1>=a0;
+  });
+  checks.push({pass:arpuOrd,text:'ARPU ordering at Yr10'});
+
+  const score=checks.filter(c=>c.pass).length;
+  const cls=score===8?'pass':score>=5?'partial':'fail';
+  box.innerHTML=`<div class="checklist"><div class="cl-header"><h3>Principles Checklist</h3>
+    <span class="cl-score ${cls}">${score}/8</span></div>
+    <div class="cl-items">${checks.map(c=>`<div class="cl-item ${c.pass?'pass':'fail'}">${c.pass?'✓':'✗'} ${c.text}</div>`).join('')}</div></div>`;
+}
+
+/* ===== OVERVIEW CHARTS ===== */
+function renderOverviewCharts(d){
+  // Users by Tier (stacked bar)
+  ch('cUsers',{type:'bar',data:{labels:LABELS,datasets:TIERS.map(t=>({
+    label:t,data:annualSnap(Array.from(d.tiers[t].users)),backgroundColor:TC[t]+'cc',borderColor:TC[t],borderWidth:1,_nolabel:true
+  }))},options:{scales:{x:{stacked:true},y:{stacked:true,title:{display:true,text:'Users',color:'#8b949e'}}},plugins:{legend:{display:true}}}});
+
+  // Growth waterfall
+  const totalUsers=LABELS.map((_,y)=>TIERS.reduce((s,t)=>s+d.tiers[t].users[(y+1)*12],0));
+  const growthPct=totalUsers.map((u,i)=>i===0?0:((u-totalUsers[i-1])/totalUsers[i-1]*100));
+  ch('cGrowth',{type:'bar',data:{labels:LABELS,datasets:[
+    {label:'Total Users',data:totalUsers,backgroundColor:'#7b68ee88',borderColor:'#7b68ee',borderWidth:1,yAxisID:'y',_nolabel:true},
+    {label:'Growth %',data:growthPct,type:'line',borderColor:'#fd71af',backgroundColor:'transparent',yAxisID:'y1',pointRadius:3,borderWidth:2}
+  ]},options:{scales:{y:{position:'left',title:{display:true,text:'Users',color:'#8b949e'}},y1:{position:'right',title:{display:true,text:'Growth %',color:'#8b949e'},grid:{drawOnChartArea:false}}}}});
+
+  // Monthly Churn
+  ch('cChurn',{type:'line',data:{labels:LABELS,datasets:TIERS.map(t=>({
+    label:t,data:Array.from({length:10},(_,y)=>d.tiers[t].churnR[y*12]*100),
+    borderColor:TC[t],backgroundColor:TC[t]+'22',fill:true,pointRadius:2,borderWidth:2
+  }))},options:{scales:{y:{title:{display:true,text:'Churn %/mo',color:'#8b949e'}}},
+    plugins:{annotation:{annotations:{lowest:{type:'label',xValue:9,yValue:Math.min(...TIERS.map(t=>d.tiers[t].churnR[108]*100)),
+      content:'Lowest: '+TIERS.reduce((b,t)=>d.tiers[t].churnR[108]<d.tiers[b].churnR[108]?t:b,'Pro'),
+      backgroundColor:'rgba(52,211,153,.2)',color:'#34d399',font:{size:9}}}}}}});
+
+  // Upsell
+  ch('cUpsell',{type:'line',data:{labels:LABELS,datasets:TIERS.map(t=>({
+    label:t,data:Array.from({length:10},()=>S.skus[t].up/100/12*100),
+    borderColor:TC[t],backgroundColor:TC[t]+'22',fill:true,pointRadius:2,borderWidth:2
+  }))},options:{scales:{y:{title:{display:true,text:'Upsell %/mo',color:'#8b949e'}}}}});
+
+  renderRevChart(d);
+  renderSubOvChart(d);
+
+  // GP by Tier
+  const gpData=TIERS.map(t=>({label:t,data:toAnnual(Array.from(d.tiers[t].gp)),backgroundColor:TC[t]+'cc',borderColor:TC[t],borderWidth:1,_nolabel:true}));
+  const totalGP=LABELS.map((_,y)=>TIERS.reduce((s,t)=>s+toAnnual(Array.from(d.tiers[t].gp))[y],0));
+  gpData.push({label:'Total',data:totalGP,type:'line',borderColor:'#fff',borderWidth:2,pointRadius:3,backgroundColor:'transparent'});
+  const gpBreakAnnot={};
+  const firstPosGP=totalGP.findIndex(v=>v>0);
+  if(firstPosGP>0)gpBreakAnnot.breakeven={type:'point',xValue:firstPosGP,yValue:0,backgroundColor:'#3fb950',radius:6,
+    label:{display:true,content:'Breakeven Yr'+(firstPosGP+1),position:'top',backgroundColor:'#3fb950',color:'#fff',font:{size:9}}};
+  ch('cGP',{type:'bar',data:{labels:LABELS,datasets:gpData},options:{scales:{x:{stacked:true},y:{stacked:true}},
+    plugins:{annotation:{annotations:{zero:zeroLine('y','$0 GP'),...gpBreakAnnot}}}}});
+
+  // Blended Margin
+  const blendMargins=Array.from({length:10},(_,y)=>{
+    const m=(y+1)*12;let tr=0,tc=0;
+    TIERS.forEach(t=>{tr+=d.tiers[t].totalRev[m];tc+=d.tiers[t].cogs[m]});
+    return tr>0?(tr-tc)/tr*100:0;
+  });
+  ch('cMargin',{type:'line',data:{labels:LABELS,datasets:[
+    {label:'Blended GM%',data:blendMargins,borderColor:'#7b68ee',backgroundColor:'#7b68ee22',fill:true,borderWidth:2,pointRadius:3}
+  ]},options:{scales:{y:{title:{display:true,text:'GM %',color:'#8b949e'}}},
+    plugins:{annotation:{annotations:{zero:zeroLine('y','0%'),target:targetLine('y',70,'70% Target','rgba(63,185,80,.5)')}}}}});
+
+  // ARPU
+  const blendedARPU=Array.from({length:10},(_,y)=>{
+    const m=(y+1)*12;let tr=0,tu=0;
+    TIERS.forEach(t=>{tr+=d.tiers[t].totalRev[m];tu+=d.tiers[t].users[m]});
+    return tu>0?tr/tu:0;
+  });
+  ch('cARPU',{type:'line',data:{labels:LABELS,datasets:[
+    {label:'Blended',data:blendedARPU,borderColor:'#fff',borderWidth:3,pointRadius:3,backgroundColor:'transparent'},
+    ...TIERS.map(t=>({label:t,data:Array.from({length:10},(_,y)=>{const m=(y+1)*12;return d.tiers[t].users[m]>0?d.tiers[t].totalRev[m]/d.tiers[t].users[m]:0}),
+      borderColor:TC[t],borderWidth:1.5,pointRadius:2,backgroundColor:'transparent',borderDash:[4,2]}))
+  ]},options:{scales:{y:{title:{display:true,text:'$/user/mo',color:'#8b949e'}}}}});
+
+  // COGS per User
+  ch('cCOGS',{type:'line',data:{labels:LABELS,datasets:TIERS.map(t=>({
+    label:t,data:Array.from({length:10},(_,y)=>{const m=(y+1)*12;return d.tiers[t].users[m]>0?d.tiers[t].cogs[m]/d.tiers[t].users[m]:0}),
+    borderColor:TC[t],backgroundColor:TC[t]+'22',fill:true,borderWidth:2,pointRadius:2
+  }))},options:{scales:{y:{title:{display:true,text:'$/user/mo',color:'#8b949e'}}}}});
+
+  // GP per User
+  const gpuAnnot={};
+  TIERS.forEach(t=>{
+    const gpuArr=Array.from({length:10},(_,y)=>{const m=(y+1)*12;return d.tiers[t].users[m]>0?d.tiers[t].gp[m]/d.tiers[t].users[m]:0});
+    const cross=gpuArr.findIndex(v=>v>0);
+    if(cross>0)gpuAnnot[t+'cross']={type:'point',xValue:cross,yValue:0,backgroundColor:TC[t],radius:5};
+  });
+  ch('cGPU',{type:'line',data:{labels:LABELS,datasets:TIERS.map(t=>({
+    label:t,data:Array.from({length:10},(_,y)=>{const m=(y+1)*12;return d.tiers[t].users[m]>0?d.tiers[t].gp[m]/d.tiers[t].users[m]:0}),
+    borderColor:TC[t],borderWidth:2,pointRadius:2,backgroundColor:'transparent'
+  }))},options:{scales:{y:{title:{display:true,text:'$/user/mo',color:'#8b949e'}}},
+    plugins:{annotation:{annotations:{zero:zeroLine('y','$0'),...gpuAnnot}}}}});
+
+  // GM% by Tier
+  ch('cGMTier',{type:'line',data:{labels:LABELS,datasets:TIERS.map(t=>({
+    label:t,data:Array.from({length:10},(_,y)=>d.tiers[t].margin[(y+1)*12]),
+    borderColor:TC[t],borderWidth:2,pointRadius:2,backgroundColor:'transparent'
+  }))},options:{scales:{y:{title:{display:true,text:'GM %',color:'#8b949e'}}},
+    plugins:{annotation:{annotations:{zero:zeroLine('y','0%')}}}}});
+}
+
+let subOvMode='arr';
+function setRevMode(mode,btn){
+  revMode=mode;
+  btn.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderRevChart(simulate());
+}
+function setSubOvMode(mode,btn){
+  subOvMode=mode;
+  btn.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderSubOvChart(simulate());
+}
+
+function renderRevChart(d){
+  const mul=revMode==='arr'?12:1;
+  ch('cRev',{type:'bar',data:{labels:LABELS,datasets:TIERS.map(t=>({
+    label:t,data:toAnnual(Array.from(d.tiers[t].totalRev)).map(v=>v*(revMode==='arr'?1:1)),
+    backgroundColor:TC[t]+'cc',borderColor:TC[t],borderWidth:1,_nolabel:true
+  }))},options:{scales:{x:{stacked:true},y:{stacked:true,title:{display:true,text:revMode==='arr'?'ARR ($)':'Revenue ($)',color:'#8b949e'}}}}});
+}
+
+function renderSubOvChart(d){
+  const subA=LABELS.map((_,y)=>TIERS.reduce((s,t)=>s+toAnnual(Array.from(d.tiers[t].subRev))[y],0));
+  const ovA=LABELS.map((_,y)=>TIERS.reduce((s,t)=>s+toAnnual(Array.from(d.tiers[t].ovRev))[y],0));
+  ch('cSubOv',{type:'bar',data:{labels:LABELS,datasets:[
+    {label:'Subscription',data:subA,backgroundColor:'#49ccf988',borderColor:'#49ccf9',borderWidth:1,_nolabel:true},
+    {label:'Overage',data:ovA,backgroundColor:'#fd71af88',borderColor:'#fd71af',borderWidth:1,_nolabel:true}
+  ]},options:{scales:{x:{stacked:true},y:{stacked:true,title:{display:true,text:'Revenue ($)',color:'#8b949e'}}}}});
+}
+
+/* ===== GM BY USAGE ===== */
+function renderGMUsage(d){
+  const yr=parseInt(el('gmYrSel').value);
+  TIERS.forEach(t=>{
+    const gm=gmByUsageForTier(t,yr+1);
+    const pcts=gm.map(g=>g.percentile);
+    const vals=gm.map(g=>g.gm);
+    ch('cGMU_'+tid(t),{type:'bar',data:{labels:pcts,datasets:[
+      {label:'GM %',data:vals,backgroundColor:vals.map(v=>v>=0?TC[t]+'aa':'#f8514966'),borderColor:vals.map(v=>v>=0?TC[t]:'#f85149'),borderWidth:1}
+    ]},options:{scales:{y:{title:{display:true,text:'GM %',color:'#8b949e'}}},plugins:{legend:{display:false},
+      annotation:{annotations:{zero:zeroLine('y')}}}}});
+  });
+}
+
+/* ===== LTV ===== */
+function renderLTV(d){
+  TIERS.forEach(t=>{
+    const ltv=Array.from(d.tiers[t].ltvCum);
+    const monthly=Array.from({length:121},(_,m)=>m);
+    const labels2=monthly.filter(m=>m%12===0).map(m=>'Yr'+(m/12));
+    const vals=monthly.filter(m=>m%12===0).map(m=>ltv[m]);
+    let beIdx=-1;for(let i=0;i<vals.length;i++)if(vals[i]>0){beIdx=i;break}
+    const annots={};
+    annots.zero=zeroLine('y','$0');
+    if(beIdx>0)annots.be={type:'point',xValue:beIdx,yValue:vals[beIdx],backgroundColor:'#3fb950',radius:6,
+      label:{display:true,content:'BE Yr'+beIdx,position:'top',backgroundColor:'#3fb950',color:'#fff',font:{size:9}}};
+    annots.terminal={type:'label',xValue:vals.length-1,yValue:vals[vals.length-1],
+      content:'$'+fmt(vals[vals.length-1],0),backgroundColor:'rgba(123,104,238,.8)',color:'#fff',font:{size:10}};
+
+    ch('cLTV_'+tid(t),{type:'line',data:{labels:labels2,datasets:[
+      {label:'Cumulative LTV',data:vals,borderColor:TC[t],backgroundColor:TC[t]+'22',fill:true,borderWidth:2,pointRadius:2}
+    ]},options:{scales:{y:{title:{display:true,text:'LTV ($)',color:'#8b949e'}}},
+      plugins:{legend:{display:false},annotation:{annotations:annots}}}});
+  });
+}
+
+/* ===== ASSUMPTIONS ===== */
+function renderAssumptions(d){
+  const months=Array.from({length:121},(_,m)=>m);
+  const labels2=months.filter(m=>m%12===0).map(m=>'Yr'+(m/12));
+  const mIdxs=months.filter(m=>m%12===0);
+
+  // Efficiency
+  const effData=mIdxs.map(m=>effAt(m));
+  const rockAnnots={};
+  Object.values(S.rocks).forEach((r,i)=>{
+    if(r.on){
+      const xIdx=mIdxs.findIndex(m=>m>=r.mo);
+      if(xIdx>=0)rockAnnots['rock'+i]={type:'line',xMin:xIdx,xMax:xIdx,borderColor:'#fd71af88',borderWidth:1,borderDash:[3,3],
+        label:{display:true,content:r.label,position:'start',backgroundColor:'#fd71af',color:'#fff',font:{size:8}}};
+    }
+  });
+  ch('cAsmEff',{type:'line',data:{labels:labels2,datasets:[
+    {label:'Efficiency',data:effData,borderColor:'#79d9b9',backgroundColor:'#79d9b922',fill:true,borderWidth:2,pointRadius:2}
+  ]},options:{scales:{y:{title:{display:true,text:'Multiplier',color:'#8b949e'}}},
+    plugins:{legend:{display:false},annotation:{annotations:rockAnnots}}}});
+
+  // Avg PRU Usage
+  ch('cAsmUse',{type:'line',data:{labels:labels2,datasets:TIERS.map(t=>({
+    label:t,data:mIdxs.map(m=>getAvgUse(t,m/12)),borderColor:TC[t],borderWidth:2,pointRadius:2,backgroundColor:'transparent'
+  }))},options:{scales:{y:{title:{display:true,text:'PRU/mo',color:'#8b949e'}}}}});
+
+  // Overage %
+  ch('cAsmOv',{type:'line',data:{labels:labels2,datasets:TIERS.map(t=>({
+    label:t,data:mIdxs.map(m=>getOvPct(t,m/12)),borderColor:TC[t],borderWidth:2,pointRadius:2,backgroundColor:'transparent'
+  }))},options:{scales:{y:{title:{display:true,text:'Overage %',color:'#8b949e'}}}}});
+
+  // Cost per PRU effective
+  const disc=1-S.provDisc/100;
+  ch('cAsmCost',{type:'line',data:{labels:labels2,datasets:[
+    {label:'Eff. Cost/PRU',data:mIdxs.map(m=>B.costPerPRU*effAt(m)*disc),
+      borderColor:'#ffb08e',backgroundColor:'#ffb08e22',fill:true,borderWidth:2,pointRadius:2}
+  ]},options:{scales:{y:{title:{display:true,text:'$/PRU',color:'#8b949e'}}},plugins:{legend:{display:false}}}});
+}
+
+/* ===== P&L TAB ===== */
+function renderPnl(d){
+  // KPIs
+  const yr1Rev=TIERS.reduce((s,t)=>s+toAnnual(Array.from(d.tiers[t].totalRev))[0],0);
+  const yr10Rev=TIERS.reduce((s,t)=>s+toAnnual(Array.from(d.tiers[t].totalRev))[9],0);
+  const yr10GP=TIERS.reduce((s,t)=>s+toAnnual(Array.from(d.tiers[t].gp))[9],0);
+  const yr10Margin=yr10Rev>0?yr10GP/yr10Rev*100:0;
+  el('pnlKPI').innerHTML=`
+    <div class="kpi"><div class="kpi-label">Yr1 ARR</div><div class="kpi-val">${fmtD(yr1Rev)}</div></div>
+    <div class="kpi"><div class="kpi-label">Yr10 ARR</div><div class="kpi-val">${fmtD(yr10Rev)}</div></div>
+    <div class="kpi"><div class="kpi-label">Yr10 GP</div><div class="kpi-val">${fmtD(yr10GP)}</div></div>
+    <div class="kpi"><div class="kpi-label">Yr10 GM%</div><div class="kpi-val">${fmtPct(yr10Margin)}</div></div>`;
+
+  // P&L Table
+  let html='<table><thead><tr><th>Metric</th>'+LABELS.map(l=>'<th>'+l+'</th>').join('')+'</tr></thead><tbody>';
+  const metrics=[
+    {name:'Revenue',fn:y=>TIERS.reduce((s,t)=>s+toAnnual(Array.from(d.tiers[t].totalRev))[y],0)},
+    {name:'  Sub Revenue',fn:y=>TIERS.reduce((s,t)=>s+toAnnual(Array.from(d.tiers[t].subRev))[y],0)},
+    {name:'  Overage Rev',fn:y=>TIERS.reduce((s,t)=>s+toAnnual(Array.from(d.tiers[t].ovRev))[y],0)},
+    {name:'COGS',fn:y=>TIERS.reduce((s,t)=>s+toAnnual(Array.from(d.tiers[t].cogs))[y],0)},
+    {name:'Gross Profit',fn:y=>TIERS.reduce((s,t)=>s+toAnnual(Array.from(d.tiers[t].gp))[y],0)},
+    {name:'GM %',fn:y=>{const r=TIERS.reduce((s,t)=>s+toAnnual(Array.from(d.tiers[t].totalRev))[y],0);const c=TIERS.reduce((s,t)=>s+toAnnual(Array.from(d.tiers[t].cogs))[y],0);return r>0?(r-c)/r*100:0},pct:true},
+    {name:'Users',fn:y=>TIERS.reduce((s,t)=>s+d.tiers[t].users[(y+1)*12],0)},
+  ];
+  metrics.forEach(m=>{
+    html+='<tr><td>'+m.name+'</td>';
+    for(let y=0;y<10;y++){
+      const v=m.fn(y);
+      const cls=v<0?'neg':v>0?'pos':'';
+      html+='<td class="'+cls+'">'+(m.pct?fmtPct(v):fmtD(v))+'</td>';
+    }
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+  el('pnlTable').innerHTML=html;
+
+  // Revenue detail by tier
+  html='<table><thead><tr><th>Tier</th><th>Metric</th>'+LABELS.map(l=>'<th>'+l+'</th>').join('')+'</tr></thead><tbody>';
+  TIERS.forEach(t=>{
+    ['totalRev','subRev','ovRev','cogs','gp'].forEach(k=>{
+      html+='<tr><td>'+t+'</td><td>'+k+'</td>';
+      const arr=toAnnual(Array.from(d.tiers[t][k]));
+      arr.forEach(v=>{html+='<td class="'+(v<0?'neg':'')+'">'+fmtD(v)+'</td>'});
+      html+='</tr>';
+    });
+  });
+  html+='</tbody></table>';
+  el('revDetailTable').innerHTML=html;
+}
+
+/* ===== UNIT ECONOMICS ===== */
+function renderUnitEcon(d){
+  const years=[{label:'Year 1',m:12},{label:'Year 5',m:60},{label:'Year 10',m:120}];
+  let html='';
+  years.forEach(yr=>{
+    html+=`<div class="invest-card"><h4>${yr.label} Unit Economics</h4><table><thead><tr><th>Metric</th>${TIERS.map(t=>'<th style="color:'+TC[t]+'">'+t+'</th>').join('')}</tr></thead><tbody>`;
+    const rows=[
+      {name:'Users',fn:t=>d.tiers[t].users[yr.m]},
+      {name:'ARPU ($/mo)',fn:t=>d.tiers[t].users[yr.m]>0?d.tiers[t].totalRev[yr.m]/d.tiers[t].users[yr.m]:0},
+      {name:'COGS/User',fn:t=>d.tiers[t].users[yr.m]>0?d.tiers[t].cogs[yr.m]/d.tiers[t].users[yr.m]:0},
+      {name:'GP/User',fn:t=>d.tiers[t].users[yr.m]>0?d.tiers[t].gp[yr.m]/d.tiers[t].users[yr.m]:0},
+      {name:'GM %',fn:t=>d.tiers[t].margin[yr.m],pct:true},
+      {name:'LTV (cum)',fn:t=>d.tiers[t].ltvCum[yr.m]},
+      {name:'Sub Rev',fn:t=>d.tiers[t].subRev[yr.m]},
+      {name:'Overage Rev',fn:t=>d.tiers[t].ovRev[yr.m]},
+      {name:'Overage %',fn:t=>d.tiers[t].totalRev[yr.m]>0?d.tiers[t].ovRev[yr.m]/d.tiers[t].totalRev[yr.m]*100:0,pct:true},
+    ];
+    rows.forEach(r=>{
+      html+='<tr><td>'+r.name+'</td>';
+      TIERS.forEach(t=>{const v=r.fn(t);html+='<td class="'+(v<0?'neg':'')+'">'+( r.pct?fmtPct(v):r.name==='Users'?fmtFull(Math.round(v)):'$'+fmt(v,2))+'</td>'});
+      html+='</tr>';
+    });
+    html+='</tbody></table></div>';
+  });
+  el('unitEconCards').innerHTML=html;
+}
+
+/* ===== INVESTMENT & PAYBACK ===== */
+function renderInvest(d){
+  // Find max investment (most negative cumulative GP) and breakeven month
+  let html='';
+  const cumGPData=[];
+  TIERS.forEach(t=>{
+    let cum=0;let minCum=0;let beMo=-1;
+    const cumArr=[];
+    for(let m=0;m<=120;m++){
+      cum+=d.tiers[t].gp[m];
+      cumArr.push(cum);
+      if(cum<minCum)minCum=cum;
+      if(beMo<0&&cum>0&&m>0)beMo=m;
+    }
+    cumGPData.push({tier:t,cumArr:cumArr,maxInvest:minCum,beMo:beMo});
+  });
+
+  let totalCum=0;let totalMinCum=0;let totalBeMo=-1;
+  const totalCumArr=[];
+  for(let m=0;m<=120;m++){
+    totalCum+=TIERS.reduce((s,t)=>s+d.tiers[t].gp[m],0);
+    totalCumArr.push(totalCum);
+    if(totalCum<totalMinCum)totalMinCum=totalCum;
+    if(totalBeMo<0&&totalCum>0&&m>0)totalBeMo=m;
+  }
+
+  html+=`<div class="invest-card"><h4>Portfolio Summary</h4>
+    <p style="font-size:12px;color:var(--fg2)">Max investment required: <strong style="color:var(--red)">$${fmt(Math.abs(totalMinCum))}</strong></p>
+    <p style="font-size:12px;color:var(--fg2)">Breakeven month: <strong style="color:var(--green)">${totalBeMo>=0?'Month '+totalBeMo+' (Yr'+(totalBeMo/12).toFixed(1)+')':'Never'}</strong></p>
+    <p style="font-size:12px;color:var(--fg2)">Yr10 cumulative GP: <strong style="color:${totalCumArr[120]>0?'var(--green)':'var(--red)'}">$${fmt(totalCumArr[120])}</strong></p></div>`;
+
+  html+=`<div class="invest-card"><h4>Per-Tier Investment</h4>
+    ${cumGPData.map(c=>`<p style="font-size:11px;color:var(--fg2)"><span style="color:${TC[c.tier]};font-weight:600">${c.tier}</span>: 
+      Max invest $${fmt(Math.abs(c.maxInvest))} · BE ${c.beMo>=0?'Mo'+c.beMo:'Never'} · Yr10 cum $${fmt(c.cumArr[120])}</p>`).join('')}</div>`;
+
+  el('investCards').innerHTML=html;
+
+  // Payback table
+  let tbl='<table><thead><tr><th>Tier</th><th>Max Investment</th><th>Breakeven Mo</th><th>Breakeven Yr</th><th>Yr5 Cum GP</th><th>Yr10 Cum GP</th></tr></thead><tbody>';
+  cumGPData.forEach(c=>{
+    tbl+=`<tr><td style="color:${TC[c.tier]}">${c.tier}</td><td class="neg">$${fmt(Math.abs(c.maxInvest))}</td>
+      <td>${c.beMo>=0?c.beMo:'Never'}</td><td>${c.beMo>=0?(c.beMo/12).toFixed(1):'—'}</td>
+      <td class="${c.cumArr[60]>0?'pos':'neg'}">$${fmt(c.cumArr[60])}</td>
+      <td class="${c.cumArr[120]>0?'pos':'neg'}">$${fmt(c.cumArr[120])}</td></tr>`;
+  });
+  tbl+='</tbody></table>';
+  el('paybackTable').innerHTML=tbl;
+
+  // Cumulative GP chart
+  const cumLabels=Array.from({length:11},(_,y)=>'Yr'+y);
+  ch('cCumGP',{type:'line',data:{labels:cumLabels,datasets:[
+    ...cumGPData.map(c=>({label:c.tier,data:c.cumArr.filter((_,m)=>m%12===0),borderColor:TC[c.tier],borderWidth:2,pointRadius:2,backgroundColor:'transparent'})),
+    {label:'Total',data:totalCumArr.filter((_,m)=>m%12===0),borderColor:'#fff',borderWidth:3,pointRadius:3,backgroundColor:'transparent'}
+  ]},options:{scales:{y:{title:{display:true,text:'Cumulative GP ($)',color:'#8b949e'}}},
+    plugins:{annotation:{annotations:{zero:zeroLine('y','$0 breakeven')}}}}});
+}
+
+/* ===== SENSITIVITY ===== */
+function renderSensitivity(d){
+  // Retention sensitivity ±5pp
+  const baseLTVs=TIERS.map(t=>d.tiers[t].ltvCum[120]);
+  const retPlus=runWithOverrides(st=>TIERS.forEach(t=>st.skus[t].ret=Math.min(st.skus[t].ret+5,100)));
+  const retMinus=runWithOverrides(st=>TIERS.forEach(t=>st.skus[t].ret=Math.max(st.skus[t].ret-5,0)));
+  let html='<table><thead><tr><th>Tier</th><th>LTV (Ret -5pp)</th><th>LTV (Base)</th><th>LTV (Ret +5pp)</th><th>Δ Low</th><th>Δ High</th></tr></thead><tbody>';
+  TIERS.forEach((t,i)=>{
+    const lo=retMinus.tiers[t].ltvCum[120];
+    const base=baseLTVs[i];
+    const hi=retPlus.tiers[t].ltvCum[120];
+    html+=`<tr><td style="color:${TC[t]}">${t}</td><td>$${fmt(lo,0)}</td><td>$${fmt(base,0)}</td><td>$${fmt(hi,0)}</td>
+      <td class="${lo-base<0?'neg':'pos'}">$${fmt(lo-base,0)}</td><td class="${hi-base>0?'pos':'neg'}">$${fmt(hi-base,0)}</td></tr>`;
+  });
+  html+='</tbody></table>';
+  el('retSensTable').innerHTML=html;
+
+  // Overage sensitivity ±10pp
+  const ovPlus=runWithOverrides(st=>TIERS.forEach(t=>{st.skus[t].ovPctYr1+=10;st.skus[t].ovPctYr10+=10}));
+  const ovMinus=runWithOverrides(st=>TIERS.forEach(t=>{st.skus[t].ovPctYr1=Math.max(st.skus[t].ovPctYr1-10,0);st.skus[t].ovPctYr10=Math.max(st.skus[t].ovPctYr10-10,0)}));
+  html='<table><thead><tr><th>Tier</th><th>LTV (Ov -10pp)</th><th>LTV (Base)</th><th>LTV (Ov +10pp)</th><th>Δ Low</th><th>Δ High</th></tr></thead><tbody>';
+  TIERS.forEach((t,i)=>{
+    const lo=ovMinus.tiers[t].ltvCum[120];
+    const base=baseLTVs[i];
+    const hi=ovPlus.tiers[t].ltvCum[120];
+    html+=`<tr><td style="color:${TC[t]}">${t}</td><td>$${fmt(lo,0)}</td><td>$${fmt(base,0)}</td><td>$${fmt(hi,0)}</td>
+      <td class="${lo-base<0?'neg':'pos'}">$${fmt(lo-base,0)}</td><td class="${hi-base>0?'pos':'neg'}">$${fmt(hi-base,0)}</td></tr>`;
+  });
+  html+='</tbody></table>';
+  el('ovSensTable').innerHTML=html;
+
+  // Price sensitivity ±20%
+  const pPlus=runWithOverrides(st=>TIERS.forEach(t=>st.skus[t].p*=1.2));
+  const pMinus=runWithOverrides(st=>TIERS.forEach(t=>st.skus[t].p*=0.8));
+  html='<table><thead><tr><th>Tier</th><th>LTV (Price -20%)</th><th>LTV (Base)</th><th>LTV (Price +20%)</th><th>Δ Low</th><th>Δ High</th></tr></thead><tbody>';
+  TIERS.forEach((t,i)=>{
+    const lo=pMinus.tiers[t].ltvCum[120];
+    const base=baseLTVs[i];
+    const hi=pPlus.tiers[t].ltvCum[120];
+    html+=`<tr><td style="color:${TC[t]}">${t}</td><td>$${fmt(lo,0)}</td><td>$${fmt(base,0)}</td><td>$${fmt(hi,0)}</td>
+      <td class="${lo-base<0?'neg':'pos'}">$${fmt(lo-base,0)}</td><td class="${hi-base>0?'pos':'neg'}">$${fmt(hi-base,0)}</td></tr>`;
+  });
+  html+='</tbody></table>';
+  el('priceSensTable').innerHTML=html;
+
+  // Tornado chart — Ultra LTV impact
+  const uBase=baseLTVs[3]; // Ultra index
+  const factors=[
+    {name:'Retention ±5pp',lo:retMinus.tiers['Ultra'].ltvCum[120],hi:retPlus.tiers['Ultra'].ltvCum[120]},
+    {name:'Overage ±10pp',lo:ovMinus.tiers['Ultra'].ltvCum[120],hi:ovPlus.tiers['Ultra'].ltvCum[120]},
+    {name:'Price ±20%',lo:pMinus.tiers['Ultra'].ltvCum[120],hi:pPlus.tiers['Ultra'].ltvCum[120]},
+  ];
+  // Add COGS and WACC
+  const cogsPlus=runWithOverrides(st=>st.cogsImprove=st.cogsImprove+0.5);
+  const cogsMinus=runWithOverrides(st=>st.cogsImprove=Math.max(st.cogsImprove-0.3,0));
+  factors.push({name:'COGS Improve ±',lo:cogsMinus.tiers['Ultra'].ltvCum[120],hi:cogsPlus.tiers['Ultra'].ltvCum[120]});
+  const waccPlus=runWithOverrides(st=>st.wacc+=5);
+  const waccMinus=runWithOverrides(st=>st.wacc=Math.max(st.wacc-5,1));
+  factors.push({name:'WACC ±5pp',lo:waccPlus.tiers['Ultra'].ltvCum[120],hi:waccMinus.tiers['Ultra'].ltvCum[120]});
+
+  factors.sort((a,b)=>Math.abs(b.hi-b.lo)-Math.abs(a.hi-a.lo));
+
+  ch('cTornado',{type:'bar',data:{
+    labels:factors.map(f=>f.name),
+    datasets:[
+      {label:'Downside',data:factors.map(f=>Math.min(f.lo,f.hi)-uBase),backgroundColor:'#f8514988',borderColor:'#f85149',borderWidth:1},
+      {label:'Upside',data:factors.map(f=>Math.max(f.lo,f.hi)-uBase),backgroundColor:'#3fb95088',borderColor:'#3fb950',borderWidth:1}
+    ]
+  },options:{indexAxis:'y',scales:{x:{title:{display:true,text:'LTV Δ from Base ($)',color:'#8b949e'}}},
+    plugins:{annotation:{annotations:{zero:{type:'line',scaleID:'x',value:0,borderColor:'#fff',borderWidth:1}}}}}});
+
+  // ARR Sensitivity chart (Yr5)
+  const scenarios=[
+    {name:'Ret -5',d:retMinus},{name:'Base',d:d},{name:'Ret +5',d:retPlus},
+    {name:'Price -20%',d:pMinus},{name:'Price +20%',d:pPlus}
+  ];
+  ch('cARRSens',{type:'bar',data:{
+    labels:scenarios.map(s=>s.name),
+    datasets:TIERS.map(t=>({
+      label:t,data:scenarios.map(s=>toAnnual(Array.from(s.d.tiers[t].totalRev))[4]),
+      backgroundColor:TC[t]+'cc',borderColor:TC[t],borderWidth:1
+    }))
+  },options:{scales:{x:{stacked:true},y:{stacked:true,title:{display:true,text:'Yr5 ARR ($)',color:'#8b949e'}}}}});
+}
+
+/* ===== SCENARIOS ===== */
+function autoSave(){
+  try{localStorage.setItem('tbb-v6-autosave',JSON.stringify(S))}catch(e){}
+  const b=el('autoBadge');if(b){b.textContent='Autosaved';setTimeout(()=>{b.textContent='Autosaved'},500)}
+}
+
+function loadAutosave(){
+  try{
+    const s=localStorage.getItem('tbb-v6-autosave');
+    if(s){S=JSON.parse(s);buildAccordion();toast('Restored autosave')}
+  }catch(e){}
+}
+
+function saveScenario(){
+  const name=el('snapName').value.trim()||('Scenario '+new Date().toLocaleTimeString());
+  let snaps=getSnaps();
+  snaps.push({name:name,state:clone(S),ts:Date.now()});
+  try{localStorage.setItem('tbb-v6-snapshots',JSON.stringify(snaps))}catch(e){}
+  renderSavedList();
+  toast('Saved: '+name);
+}
+
+function getSnaps(){
+  try{return JSON.parse(localStorage.getItem('tbb-v6-snapshots'))||[]}catch(e){return[]}
+}
+
+function loadSnap(i){
+  const snaps=getSnaps();
+  if(snaps[i]){S=clone(snaps[i].state);buildAccordion();updateAll();toast('Loaded: '+snaps[i].name)}
+}
+
+function delSnap(i){
+  const snaps=getSnaps();
+  snaps.splice(i,1);
+  try{localStorage.setItem('tbb-v6-snapshots',JSON.stringify(snaps))}catch(e){}
+  renderSavedList();
+}
+
+function renderSavedList(){
+  const box=el('savedList');
+  const snaps=getSnaps();
+  if(!snaps.length){box.innerHTML='<span style="color:var(--fg3)">No saved scenarios</span>';return}
+  box.innerHTML=snaps.map((s,i)=>`<div class="snap" onclick="loadSnap(${i})"><span>${s.name}</span><span class="del" onclick="event.stopPropagation();delSnap(${i})">✗</span></div>`).join('');
+}
+
+function openCompare(){
+  const snaps=getSnaps();
+  if(!snaps.length){toast('Save a scenario first to compare');return}
+  compareState=clone(snaps[snaps.length-1].state);
+  renderCompare();
+  el('comparePanel').classList.add('open');
+}
+
+function closeCompare(){
+  el('comparePanel').classList.remove('open');
+  compareState=null;
+}
+
+function renderCompare(){
+  if(!compareState)return;
+  const dCurrent=simulate(S);
+  const dCompare=simulate(compareState);
+  const body=el('compareBody');
+
+  let html='<table class="compare-tbl"><thead><tr><th>Metric</th><th>Current</th><th>Saved</th><th>Δ</th></tr></thead><tbody>';
+  TIERS.forEach(t=>{
+    const curLTV=dCurrent.tiers[t].ltvCum[120];
+    const cmpLTV=dCompare.tiers[t].ltvCum[120];
+    const delta=curLTV-cmpLTV;
+    html+=`<tr><td>${t} LTV (Yr10)</td><td>$${fmt(curLTV,0)}</td><td>$${fmt(cmpLTV,0)}</td>
+      <td class="${delta>0?'better':'worse'}">$${fmt(delta,0)}</td></tr>`;
+
+    const curMargin=dCurrent.tiers[t].margin[120];
+    const cmpMargin=dCompare.tiers[t].margin[120];
+    const mDelta=curMargin-cmpMargin;
+    html+=`<tr><td>${t} GM% (Yr10)</td><td>${fmtPct(curMargin)}</td><td>${fmtPct(cmpMargin)}</td>
+      <td class="${mDelta>0?'better':'worse'}">${fmtPct(mDelta)}</td></tr>`;
+  });
+
+  // Blended revenue
+  const curRev=TIERS.reduce((s,t)=>s+toAnnual(Array.from(dCurrent.tiers[t].totalRev))[9],0);
+  const cmpRev=TIERS.reduce((s,t)=>s+toAnnual(Array.from(dCompare.tiers[t].totalRev))[9],0);
+  html+=`<tr><td><strong>Yr10 ARR</strong></td><td>$${fmt(curRev)}</td><td>$${fmt(cmpRev)}</td>
+    <td class="${curRev>cmpRev?'better':'worse'}">$${fmt(curRev-cmpRev)}</td></tr>`;
+
+  html+='</tbody></table>';
+  body.innerHTML=html;
+}
+
+/* ===== INIT ===== */
+buildUI();
+updateAll();
+</script>
+</body>
+</html>
