@@ -377,7 +377,7 @@ const SKU_PRICING=[
   {l:'Value Ratio (Yr1)',k:'_ratio',c:true},
 ];
 const SKU_USAGE=[
-  {l:'Avg Consumption $ (Yr1)',k:'avgUse'},
+  {l:'Avg Consumption (blended) $',k:'avgUse'},
   {l:'Consumption Growth %/yr',k:'avgUseGrow'},
   {l:'Entitlement Utilization %',k:'util'},
   {l:'% in Overage (Yr1)',k:'ovPctYr1'},
@@ -506,11 +506,13 @@ function simulate(){
       const wP=1-curOvPct, oP=curOvPct;
       const curAvgUse=getAvgUse(t,yr);
       const ut=getUtil(t);
-      const withinCost=ent*ut;
-      const overExcess=Math.max(0,curAvgUse-ent);
+      const withinUse=ent*ut; // what within-ent users actually consume
+      // Back-solve: if avgUse is blended, overage users consume more
+      const ovUse=oP>0?(curAvgUse-wP*withinUse)/oP:curAvgUse; // overage user consumption
+      const overExcess=Math.max(0,ovUse-ent);
       const sr=u*s.p;
       const or_=u*oP*overExcess*(1-s.ovDisc/100);
-      const cg=u*(wP*withinCost+oP*curAvgUse)*(1-pd)*ef;
+      const cg=u*(wP*withinUse+oP*ovUse)*(1-pd)*ef;
       const tr=sr+or_,gp=tr-cg;
       R.u[t].push(u);R.sr[t].push(sr);R.or[t].push(or_);R.cg[t].push(cg);
       R.gm[t].push(tr>0?(gp/tr*100):0);R.gp[t].push(gp);
@@ -553,9 +555,12 @@ function simulate(){
     for(let m=0;m<120;m++){const ef=effAt(m);const lyr=Math.min(9,Math.floor(m/12));let mR=0,mC=0;
       TIERS.forEach(t=>{if(p[t]<.0001)return;const s=S.skus[t];
         const ent=getE(t,m);const curOvPct=getOvPct(t,m);const curAvgUse=getAvgUse(t,lyr);const ut=getUtil(t);
-        const wP=1-curOvPct,overExcess=Math.max(0,curAvgUse-ent);
+        const wP=1-curOvPct;
+        const withinUse=ent*ut;
+        const ovUse=curOvPct>0?(curAvgUse-wP*withinUse)/curOvPct:curAvgUse;
+        const overExcess=Math.max(0,ovUse-ent);
         mR+=p[t]*(s.p+curOvPct*overExcess*(1-s.ovDisc/100));
-        mC+=p[t]*(wP*ent*ut+curOvPct*curAvgUse)*(1-pd)*ef;});
+        mC+=p[t]*(wP*withinUse+curOvPct*ovUse)*(1-pd)*ef;});
       c+=(mR-mC)*Math.pow(1+wacc/12,-(m+1));cum.push(c);
       const np2={"Pro":0,"Pro+":0,"Max":0,"Ultra":0};
       TIERS.forEach(t=>{if(p[t]<.0001)return;const ret=Math.pow(S.skus[t].ret/100,1/12),kept=p[t]*ret,nt=nxt[t];
@@ -1057,11 +1062,11 @@ function renderPL(R){
 function renderUnit(R){
   [0,4,9].forEach((yr,idx)=>{
     const tid=['unit-econ-table','unit-econ-table-y5','unit-econ-table-y10'][idx],m=yr*12+6,ef=effAt(m),pd=S.provDisc/100,rows=[];
-    TIERS.forEach(t=>{const s=S.skus[t],ent=getE(t,m),au=getAvgUse(t,yr),ov=getOvPct(t,m),ut=getUtil(t),wP=1-ov,oe=Math.max(0,au-ent),sr=s.p,or=ov*oe*(1-s.ovDisc/100),tr=sr+or,cg=(wP*ent*ut+ov*au)*(1-pd)*ef,gp=tr-cg,gm=tr>0?gp/tr*100:0;
-      if(!rows.length)['Price ($/mo)','Entitlement ($)','Value Ratio','Avg Consumption ($)','Overage %','Sub Rev/User','Ovg Rev/User','Total Rev/User','COGS/User','GP/User','Gross Margin %'].forEach(l=>rows.push({l,v:[]}));
-      rows[0].v.push('$'+s.p);rows[1].v.push('$'+ent);rows[2].v.push((ent/s.p).toFixed(1)+'\u00d7');rows[3].v.push('$'+au.toFixed(0));rows[4].v.push((ov*100).toFixed(0)+'%');rows[5].v.push('$'+sr.toFixed(2));rows[6].v.push('$'+or.toFixed(2));rows[7].v.push('$'+tr.toFixed(2));rows[8].v.push('$'+cg.toFixed(2));rows[9].v.push({val:'$'+gp.toFixed(2),cls:gp>=0?'pos':'neg'});rows[10].v.push({val:gm.toFixed(1)+'%',cls:gm>=0?'pos':'neg'});});
+    TIERS.forEach(t=>{const s=S.skus[t],ent=getE(t,m),au=getAvgUse(t,yr),ov=getOvPct(t,m),ut=getUtil(t),wP=1-ov,withinUse=ent*ut,ovUse=ov>0?(au-wP*withinUse)/ov:au,oe=Math.max(0,ovUse-ent),sr=s.p,or=ov*oe*(1-s.ovDisc/100),tr=sr+or,cg=(wP*withinUse+ov*ovUse)*(1-pd)*ef,gp=tr-cg,gm=tr>0?gp/tr*100:0;
+      if(!rows.length)['Price ($/mo)','Entitlement ($)','Value Ratio','Blended Avg Use ($)','Overage User Use ($)','Overage %','Sub Rev/User','Ovg Rev/User','Total Rev/User','COGS/User','GP/User','Gross Margin %'].forEach(l=>rows.push({l,v:[]}));
+      rows[0].v.push('$'+s.p);rows[1].v.push('$'+ent);rows[2].v.push((ent/s.p).toFixed(1)+'\u00d7');rows[3].v.push('$'+au.toFixed(0));rows[4].v.push('$'+ovUse.toFixed(0));rows[5].v.push((ov*100).toFixed(0)+'%');rows[6].v.push('$'+sr.toFixed(2));rows[7].v.push('$'+or.toFixed(2));rows[8].v.push('$'+tr.toFixed(2));rows[9].v.push('$'+cg.toFixed(2));rows[10].v.push({val:'$'+gp.toFixed(2),cls:gp>=0?'pos':'neg'});rows[11].v.push({val:gm.toFixed(1)+'%',cls:gm>=0?'pos':'neg'});});
     let h=`<thead><tr><th>Metric</th>${TIERS.map(t=>`<th style="color:${TC[t]}">${t}</th>`).join('')}</tr></thead><tbody>`;
-    rows.forEach((r,ri)=>{h+=`<tr${ri>=9?' class="total-row"':''}><td>${r.l}</td>${r.v.map(v=>typeof v==='object'?`<td class="${v.cls}">${v.val}</td>`:`<td>${v}</td>`).join('')}</tr>`;});
+    rows.forEach((r,ri)=>{h+=`<tr${ri>=10?' class="total-row"':''}><td>${r.l}</td>${r.v.map(v=>typeof v==='object'?`<td class="${v.cls}">${v.val}</td>`:`<td>${v}</td>`).join('')}</tr>`;});
     $(tid).innerHTML=h+'</tbody>';
   });
 }
