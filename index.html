@@ -232,8 +232,20 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   <div class="tab-pane" id="pane-pl">
     <div class="sec-hd">Revenue Waterfall — How Revenue Builds</div>
     <div class="row2">
-      <div class="cbox tall"><h4>Revenue Waterfall by Component</h4><canvas id="waterfall-rev"></canvas></div>
-      <div class="cbox tall"><h4>Cumulative Revenue Build (ARR)</h4><canvas id="waterfall-cum"></canvas></div>
+      <div class="cbox tall">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <h4 style="margin:0">Revenue Waterfall by Component</h4>
+          <div style="display:flex;gap:3px" id="pl-toggle-wf"></div>
+        </div>
+        <canvas id="waterfall-rev"></canvas>
+      </div>
+      <div class="cbox tall">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <h4 style="margin:0">Revenue Build (Sub + Overage)</h4>
+          <div style="display:flex;gap:3px" id="pl-toggle-cum"></div>
+        </div>
+        <canvas id="waterfall-cum"></canvas>
+      </div>
     </div>
     <div class="sec-hd">10-Year P&L Summary</div>
     <div class="cbox" style="overflow-x:auto"><table class="exec-table" id="pl-table"></table></div>
@@ -308,6 +320,8 @@ const S={provDisc:40,wacc:10,cogsImprove:0.5,
 let selectedYear=0;
 let revViewTier="arr";
 let revViewType="arr";
+let plViewWF="arr";
+let plViewCum="arr";
 let activeTab="overview";
 
 const $=s=>document.getElementById(s)||document.querySelector(s);
@@ -971,27 +985,48 @@ function renderPL(R){
   const f$=v=>fmt(v);
   // Use same aggregation as Overview: ARR = last month × 12, In-Period = sum of months
   // For P&L tables, show annual in-period revenue (sum of 12 months)
-  const aR=d(R.st.map((v,i)=>v+R.ot[i]),'sum'); // total monthly rev summed per year
+  const aR=d(R.st.map((v,i)=>v+R.ot[i]),'sum');
   const aS=d(R.st,'sum');
   const aO=d(R.ot,'sum');
+  const aS_t={}; TIERS.forEach(t=>{aS_t[t]=d(R.sr[t],'sum');});
+  const aO_t={}; TIERS.forEach(t=>{aO_t[t]=d(R.or[t],'sum');});
   const totalCogs=R.cg["Pro"].map((_,i)=>TIERS.reduce((s,t)=>s+R.cg[t][i],0));
   const aC=d(totalCogs,'sum');
   const aG=aR.map((v,i)=>v-aC[i]);
   const aGM=aR.map((v,i)=>v>0?(v-aC[i])/v*100:0);
   const aU=d(R.tu,'last');
 
-  // Waterfall charts — use same data
-  ch('waterfall-rev','bar',[
-    ...TIERS.map(t=>({label:t+' Sub',data:d(R.sr[t],'sum'),backgroundColor:TC[t]+'cc',stack:'a',borderRadius:1})),
-    ...TIERS.map(t=>({label:t+' Ovg',data:d(R.or[t],'sum'),backgroundColor:TC[t]+'55',stack:'a',borderRadius:1,borderWidth:1,borderColor:TC[t]}))
-  ],v=>fmt(v),{stacked:true,labels:YR_LABELS,maxX:10,labelFmt:fmt});
+  // Toggle buttons for P&L charts
+  $('pl-toggle-wf').innerHTML=`<button class="mini-tab${plViewWF==='arr'?' on':''}" onclick="plViewWF='arr';render()">ARR</button><button class="mini-tab${plViewWF==='monthly'?' on':''}" onclick="plViewWF='monthly';render()">In Period</button>`;
+  $('pl-toggle-cum').innerHTML=`<button class="mini-tab${plViewCum==='arr'?' on':''}" onclick="plViewCum='arr';render()">ARR</button><button class="mini-tab${plViewCum==='monthly'?' on':''}" onclick="plViewCum='monthly';render()">In Period</button>`;
 
-  // ARR chart (last month × 12, matching Overview)
-  ch('waterfall-cum','bar',[
-    {label:'Sub ARR',data:d(R.st.map(v=>v*12),'last'),backgroundColor:'#16a34acc',stack:'a',borderRadius:2},
-    {label:'Ovg ARR',data:d(R.ot.map(v=>v*12),'last'),backgroundColor:'#4ade80aa',stack:'a',borderRadius:2},
-    {label:'Total',data:d(R.arr,'last'),type:'line',borderColor:'#fff',borderWidth:2,pointRadius:4,tension:.4,_showLabels:true}
-  ],v=>fmt(v),{stacked:true,labels:YR_LABELS,maxX:10,labelFmt:fmt});
+  // Revenue waterfall by component — respects toggle
+  if(plViewWF==='arr'){
+    ch('waterfall-rev','bar',[
+      ...TIERS.map(t=>({label:t+' Sub',data:d(R.sr[t].map(v=>v*12),'last'),backgroundColor:TC[t]+'cc',stack:'a',borderRadius:1})),
+      ...TIERS.map(t=>({label:t+' Ovg',data:d(R.or[t].map(v=>v*12),'last'),backgroundColor:TC[t]+'55',stack:'a',borderRadius:1,borderWidth:1,borderColor:TC[t]}))
+    ],v=>fmt(v),{stacked:true,labels:YR_LABELS,maxX:10,labelFmt:fmt});
+  } else {
+    ch('waterfall-rev','bar',[
+      ...TIERS.map(t=>({label:t+' Sub',data:aS_t[t],backgroundColor:TC[t]+'cc',stack:'a',borderRadius:1})),
+      ...TIERS.map(t=>({label:t+' Ovg',data:aO_t[t],backgroundColor:TC[t]+'55',stack:'a',borderRadius:1,borderWidth:1,borderColor:TC[t]}))
+    ],v=>fmt(v),{stacked:true,labels:YR_LABELS,maxX:10,labelFmt:fmt});
+  }
+
+  // Revenue build (sub + overage) — respects toggle
+  if(plViewCum==='arr'){
+    ch('waterfall-cum','bar',[
+      {label:'Sub ARR',data:d(R.st.map(v=>v*12),'last'),backgroundColor:'#16a34acc',stack:'a',borderRadius:2},
+      {label:'Ovg ARR',data:d(R.ot.map(v=>v*12),'last'),backgroundColor:'#4ade80aa',stack:'a',borderRadius:2},
+      {label:'Total',data:d(R.arr,'last'),type:'line',borderColor:'#fff',borderWidth:2,pointRadius:4,tension:.4,_showLabels:true}
+    ],v=>fmt(v),{stacked:true,labels:YR_LABELS,maxX:10,labelFmt:fmt});
+  } else {
+    ch('waterfall-cum','bar',[
+      {label:'Subscription',data:aS,backgroundColor:'#16a34acc',stack:'a',borderRadius:2},
+      {label:'Overage',data:aO,backgroundColor:'#4ade80aa',stack:'a',borderRadius:2},
+      {label:'Total',data:aR,type:'line',borderColor:'#fff',borderWidth:2,pointRadius:4,tension:.4,_showLabels:true}
+    ],v=>fmt(v),{stacked:true,labels:YR_LABELS,maxX:10,labelFmt:fmt});
+  }
 
   // P&L table — no 10yr total column
   const pr=(l,a,p)=>`<tr><td>${l}</td>${a.map(v=>`<td class="${v<0?'neg':v>0?'pos':''}">${p?v.toFixed(1)+'%':fmtFull(v)}</td>`).join('')}</tr>`;
