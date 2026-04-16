@@ -316,10 +316,10 @@ const S={provDisc:40,wacc:10,cogsImprove:0.5,
     partnerNeg:{on:false,pct:12,mo:6,label:'Partner Negotiations',desc:'Volume discounts, committed spend deals with providers'},
   },
   skus:{
-    "Pro":  {p:10,eYr1:15,eGrow:2,avgUse:16,avgUseGrow:5,ovDisc:0,util:50,dorm:25,grow:2,ret:50,up:15,ovPctYr1:5,ovPctYr10:5},
-    "Pro+": {p:39,eYr1:70,eGrow:2,avgUse:75,avgUseGrow:5,ovDisc:5,util:90,dorm:5,grow:2,ret:60,up:10,ovPctYr1:10,ovPctYr10:10},
-    "Max":  {p:100,eYr1:200,eGrow:2,avgUse:210,avgUseGrow:5,ovDisc:10,util:90,dorm:0,grow:2,ret:70,up:5,ovPctYr1:15,ovPctYr10:15},
-    "Ultra":{p:200,eYr1:500,eGrow:2,avgUse:600,avgUseGrow:20,ovDisc:15,util:95,dorm:0,grow:2,ret:80,up:0,ovPctYr1:50,ovPctYr10:75},
+    "Pro":  {p:10,eYr1:15,eGrow:2,avgUse:16,avgUseGrow:5,avgUseDecay:0,ovDisc:0,util:50,dorm:25,grow:2,ret:50,up:15,ovPctYr1:5,ovPctYr10:5},
+    "Pro+": {p:39,eYr1:70,eGrow:2,avgUse:75,avgUseGrow:5,avgUseDecay:0,ovDisc:5,util:90,dorm:5,grow:2,ret:60,up:10,ovPctYr1:10,ovPctYr10:10},
+    "Max":  {p:100,eYr1:200,eGrow:2,avgUse:210,avgUseGrow:5,avgUseDecay:0,ovDisc:10,util:90,dorm:0,grow:2,ret:70,up:5,ovPctYr1:15,ovPctYr10:15},
+    "Ultra":{p:200,eYr1:500,eGrow:2,avgUse:600,avgUseGrow:20,avgUseDecay:10,ovDisc:15,util:95,dorm:0,grow:2,ret:80,up:0,ovPctYr1:50,ovPctYr10:75},
   }};
 let selectedYear=0;
 let revViewTier="arr";
@@ -339,7 +339,7 @@ function getE(t,m){const yr=Math.min(9,Math.floor(m/12));const s=S.skus[t];retur
 // Interpolate overage % from Yr1→Yr10
 function getOvPct(t,m){const yr=Math.min(9,Math.floor(m/12));const s=S.skus[t];return (s.ovPctYr1+(s.ovPctYr10-s.ovPctYr1)*yr/9)/100;}
 // Get avgUse at year yr
-function getAvgUse(t,yr){const s=S.skus[t];return s.avgUse*Math.pow(1+s.avgUseGrow/100,yr);}
+function getAvgUse(t,yr){const s=S.skus[t],d=s.avgUseDecay/100;let v=s.avgUse;for(let y=0;y<yr;y++)v*=1+s.avgUseGrow/100*Math.pow(1-d,y);return v;}
 // Get utilization for tier
 function getUtil(t){return S.skus[t].util/100;}
 
@@ -383,6 +383,7 @@ const SKU_PRICING=[
 const SKU_USAGE=[
   {l:'Avg Consumption (blended) $',k:'avgUse'},
   {l:'Consumption Growth %/yr',k:'avgUseGrow'},
+  {l:'Growth Decay %/yr',k:'avgUseDecay'},
   {l:'Entitlement Utilization %',k:'util'},
   {l:'% in Overage (Yr1)',k:'ovPctYr1'},
   {l:'% in Overage (Yr10)',k:'ovPctYr10'},
@@ -426,7 +427,7 @@ function onEdit(){
     const pct=document.getElementById('rk_pct_'+k);if(pct&&pct.value!=='')S.rocks[k].pct=+pct.value;
     const moEl=document.getElementById('rk_mo_'+k);if(moEl&&moEl.value!=='')S.rocks[k].mo=Math.max(1,+moEl.value)*12;
   });
-  TIERS.forEach(t=>{['p','eYr1','eGrow','avgUse','avgUseGrow','util','ovPctYr1','ovPctYr10','ovDisc','dorm','grow','ret','up'].forEach(k=>{const el=document.getElementById('sv_'+t+'_'+k);if(el&&el.value!==''){S.skus[t][k]=+el.value;}});});
+  TIERS.forEach(t=>{['p','eYr1','eGrow','avgUse','avgUseGrow','avgUseDecay','util','ovPctYr1','ovPctYr10','ovDisc','dorm','grow','ret','up'].forEach(k=>{const el=document.getElementById('sv_'+t+'_'+k);if(el&&el.value!==''){S.skus[t][k]=+el.value;}});});
   TIERS.forEach(t=>{
     const re=document.getElementById('cv__ratio_'+t);if(re)re.textContent=(S.skus[t].eYr1/S.skus[t].p).toFixed(1)+'×';
     const ov=document.getElementById('cv__ovgm_'+t);if(ov){const gm=(1-(1-S.provDisc/100)/(1-S.skus[t].ovDisc/100))*100;ov.textContent=gm.toFixed(0)+'%';ov.style.color=gm>=0?'var(--green)':'var(--red)';}
