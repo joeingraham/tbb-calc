@@ -99,6 +99,52 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .mini-tab{padding:3px 8px;border-radius:4px;font-size:9px;font-weight:600;cursor:pointer;border:1px solid var(--bd);background:var(--card2);color:var(--tx3);font-family:inherit}
 .mini-tab:hover{border-color:var(--accent)}
 .mini-tab.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* Story cards (from v3) */
+.story-box{background:linear-gradient(135deg,#0f172a 0%,#1a1033 100%);border:1px solid var(--accent);border-radius:12px;padding:20px 24px;margin-bottom:18px;position:relative;overflow:hidden}
+.story-box::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(ellipse at 30% 20%,rgba(124,107,240,.08) 0%,transparent 60%);pointer-events:none}
+.story-title{font-size:14px;font-weight:800;color:var(--accent2);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.story-title .icon{font-size:18px}
+.story-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.story-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:12px 14px}
+.story-card .sc-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--tx3);margin-bottom:4px}
+.story-card .sc-value{font-size:16px;font-weight:800;margin-bottom:2px}
+.story-card .sc-detail{font-size:11px;color:var(--tx2);line-height:1.4}
+.story-card.highlight{border-color:var(--accent);background:rgba(124,107,240,.06)}
+.story-card.warn{border-color:var(--yellow);background:rgba(251,191,36,.04)}
+.story-card.good{border-color:var(--green);background:rgba(74,222,128,.04)}
+/* Tabs (from v5) */
+.tab-bar{display:flex;gap:2px;margin-bottom:14px;background:var(--card);border-radius:8px;padding:4px;border:1px solid var(--bd)}
+.tab-btn{padding:8px 16px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;border:none;background:transparent;color:var(--tx3);font-family:inherit;transition:all .15s}
+.tab-btn:hover{color:var(--tx);background:var(--card2)}
+.tab-btn.on{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(124,107,240,.3)}
+.tab-pane{display:none}.tab-pane.on{display:block}
+/* Tables & layouts (from v5) */
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px}
+.row2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:10px}
+.cbox.tall canvas{height:300px!important}
+.exec-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px}
+.exec-table th{background:var(--card2);color:var(--tx2);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.5px;padding:10px 12px;text-align:right;border-bottom:2px solid var(--bd)}
+.exec-table th:first-child{text-align:left}
+.exec-table td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--bd);font-variant-numeric:tabular-nums}
+.exec-table td:first-child{text-align:left;font-weight:600;color:var(--tx)}
+.exec-table tr:hover{background:var(--card2)}
+.exec-table .total-row{font-weight:800;border-top:2px solid var(--accent);background:rgba(124,107,240,.08)}
+.exec-table .total-row td{padding:10px 12px}
+.exec-table .neg{color:var(--red)}.exec-table .pos{color:var(--green)}
+.exec-table .tier-pro{color:var(--pro)}.exec-table .tier-pp{color:var(--pp)}.exec-table .tier-mx{color:var(--mx)}.exec-table .tier-ultra{color:var(--ultra)}
+.invest-card{background:linear-gradient(135deg,#1a1520,#261828);border:1px solid #4a2040;border-radius:10px;padding:20px;margin-bottom:14px}
+.invest-card h3{font-size:14px;font-weight:700;color:var(--ultra);margin-bottom:8px}
+.invest-card .big{font-size:32px;font-weight:800;color:var(--tx)}
+.invest-card .sub{font-size:11px;color:var(--tx3);margin-top:4px}
+.sens-table{width:100%;border-collapse:collapse;font-size:11px}
+.sens-table th{background:var(--card2);color:var(--tx2);font-weight:700;font-size:9px;text-transform:uppercase;letter-spacing:.5px;padding:8px 10px;text-align:center;border-bottom:2px solid var(--bd)}
+.sens-table th:first-child{text-align:left}
+.sens-table td{padding:7px 10px;text-align:center;border-bottom:1px solid var(--bd);font-variant-numeric:tabular-nums}
+.sens-table td:first-child{text-align:left;font-weight:600}
+.sens-table .delta-pos{color:var(--green);font-weight:700}
+.sens-table .delta-neg{color:var(--red);font-weight:700}
+.sens-table .base-row{background:rgba(124,107,240,.1);font-weight:700}
 </style>
 </head>
 <body>
@@ -114,9 +160,14 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 </div>
 <!-- ═══ MAIN (right) ═══ -->
 <div class="main">
+  <div id="story-summary"></div>
   <div id="principles-checklist" style="margin-bottom:16px"></div>
   <div class="kpis" id="kpis"></div>
 
+  <div class="tab-bar" id="tab-bar"></div>
+
+  <!-- Tab: Overview -->
+  <div class="tab-pane on" id="pane-overview">
   <div class="sec-hd">Users</div>
   <div class="row4">
     <div class="cbox"><h4>Users by Tier</h4><canvas id="c1"></canvas></div>
@@ -175,6 +226,62 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
     <div class="cbox"><h4>Overage % by Tier</h4><canvas id="a-ov"></canvas></div>
     <div class="cbox"><h4>COGS Efficiency Factor</h4><canvas id="a-eff"></canvas></div>
   </div>
+  </div>
+
+  <!-- Tab: P&L & Revenue -->
+  <div class="tab-pane" id="pane-pl">
+    <div class="sec-hd">Revenue Waterfall — How Revenue Builds</div>
+    <div class="row2">
+      <div class="cbox tall"><h4>Revenue Waterfall by Component</h4><canvas id="waterfall-rev"></canvas></div>
+      <div class="cbox tall"><h4>Cumulative Revenue Build (ARR)</h4><canvas id="waterfall-cum"></canvas></div>
+    </div>
+    <div class="sec-hd">10-Year P&L Summary</div>
+    <div class="cbox" style="overflow-x:auto"><table class="exec-table" id="pl-table"></table></div>
+    <div class="sec-hd">Annual Revenue Detail by Tier</div>
+    <div class="cbox" style="overflow-x:auto"><table class="exec-table" id="rev-detail-table"></table></div>
+  </div>
+
+  <!-- Tab: Unit Economics -->
+  <div class="tab-pane" id="pane-unit">
+    <div class="sec-hd">Per-SKU Unit Economics — Year 1</div>
+    <div class="cbox" style="overflow-x:auto"><table class="exec-table" id="unit-econ-table"></table></div>
+    <div class="sec-hd">Per-SKU Unit Economics — Year 5</div>
+    <div class="cbox" style="overflow-x:auto"><table class="exec-table" id="unit-econ-table-y5"></table></div>
+    <div class="sec-hd">Per-SKU Unit Economics — Year 10</div>
+    <div class="cbox" style="overflow-x:auto"><table class="exec-table" id="unit-econ-table-y10"></table></div>
+  </div>
+
+  <!-- Tab: Investment & Payback -->
+  <div class="tab-pane" id="pane-invest">
+    <div class="row3" id="invest-cards"></div>
+    <div class="sec-hd">Cumulative Gross Profit — Path to Profitability</div>
+    <div class="row2">
+      <div class="cbox tall"><h4>Cumulative GP (Total Business)</h4><canvas id="cum-gp-chart"></canvas></div>
+      <div class="cbox tall"><h4>Cumulative GP per User by Tier</h4><canvas id="cum-gp-tier"></canvas></div>
+    </div>
+    <div class="sec-hd">Payback Period by Tier</div>
+    <div class="cbox" style="overflow-x:auto"><table class="exec-table" id="payback-table"></table></div>
+    <div class="sec-hd">Monthly GP Trajectory</div>
+    <div class="row2">
+      <div class="cbox tall"><h4>Monthly GP (Total)</h4><canvas id="monthly-gp-chart"></canvas></div>
+      <div class="cbox tall"><h4>Monthly GP by Tier</h4><canvas id="monthly-gp-tier"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Tab: Sensitivity -->
+  <div class="tab-pane" id="pane-sens">
+    <div class="sec-hd">Sensitivity Analysis — Retention Impact (±5pp)</div>
+    <div class="cbox" style="overflow-x:auto"><table class="sens-table" id="sens-ret-table"></table></div>
+    <div class="sec-hd">Sensitivity Analysis — Overage % Impact (±10pp)</div>
+    <div class="cbox" style="overflow-x:auto"><table class="sens-table" id="sens-ov-table"></table></div>
+    <div class="sec-hd">Sensitivity Analysis — Price Impact (±20%)</div>
+    <div class="cbox" style="overflow-x:auto"><table class="sens-table" id="sens-price-table"></table></div>
+    <div class="sec-hd">Tornado Chart — Year 5 GM% Sensitivity</div>
+    <div class="row2">
+      <div class="cbox tall"><h4>Blended GM% at Year 5</h4><canvas id="tornado-chart"></canvas></div>
+      <div class="cbox tall"><h4>Year 10 ARR Sensitivity</h4><canvas id="sens-arr-chart"></canvas></div>
+    </div>
+  </div>
 </div>
 </div>
 
@@ -201,10 +308,12 @@ const S={provDisc:40,wacc:10,cogsImprove:0.5,
 let selectedYear=0;
 let revViewTier="arr";
 let revViewType="arr";
+let activeTab="overview";
 
 const $=s=>document.getElementById(s)||document.querySelector(s);
 const fmt=n=>Math.abs(n)>=1e9?`$${(n/1e9).toFixed(1)}B`:Math.abs(n)>=1e6?`$${(n/1e6).toFixed(1)}M`:Math.abs(n)>=1e3?`$${(n/1e3).toFixed(0)}K`:`$${n.toFixed(0)}`;
 const fN=n=>Math.abs(n)>=1e6?`${(n/1e6).toFixed(1)}M`:Math.abs(n)>=1e3?`${(n/1e3).toFixed(0)}K`:`${n.toFixed(0)}`;
+const fmtFull=n=>Math.abs(n)>=1e9?`${(n/1e9).toFixed(2)}B`:Math.abs(n)>=1e6?`${(n/1e6).toFixed(1)}M`:Math.abs(n)>=1e3?`${(n/1e3).toFixed(1)}K`:`${n.toFixed(0)}`;
 let CH={};function dc(id){if(CH[id]){CH[id].destroy();delete CH[id]}}
 
 // Compute entitlement at year yr from Yr1 value + annual growth %
@@ -306,6 +415,10 @@ function onEdit(){
   });
   render();
 }
+
+const TABS=[{id:'overview',label:'\ud83d\udcca Overview'},{id:'pl',label:'\ud83d\udcb0 P&L & Revenue'},{id:'unit',label:'\ud83d\udcd0 Unit Economics'},{id:'invest',label:'\ud83c\udfe6 Investment & Payback'},{id:'sens',label:'\ud83c\udfda\ufe0f Sensitivity'}];
+function buildTabs(){$('tab-bar').innerHTML=TABS.map(t=>`<button class="tab-btn${t.id===activeTab?' on':''}" onclick="switchTab('${t.id}')">${t.label}</button>`).join('');}
+function switchTab(id){activeTab=id;buildTabs();TABS.forEach(t=>{const p=$('pane-'+t.id);if(p)p.classList.toggle('on',t.id===id);});render();}
 
 /* ══ MODEL ══ */
 function userDist(sku,n){
@@ -485,6 +598,51 @@ function gmByUsageForTier(tier, yearIdx){
   return {usagePts,gmLine,gmColors,binPct,labels:usagePts.map(x=>'$'+x)};
 }
 
+
+/* ══ STORY GENERATOR (from v3) ══ */
+function generateStory(R){
+  const L=119;
+  const ltvBreakeven={};
+  TIERS.forEach(t=>{const ltv=R.ltv[t];let beYear=null;for(let m=0;m<120;m++){if(ltv[m]>0){beYear=Math.floor(m/12)+1;break;}}ltvBreakeven[t]=beYear;});
+  let gmPositiveYear=null;
+  for(let m=0;m<120;m++){if(R.bgm[m]>0){gmPositiveYear=Math.floor(m/12)+1;break;}}
+  const terminalLTV={};TIERS.forEach(t=>{terminalLTV[t]=R.ltv[t][L];});
+  const terminalGM=R.bgm[L],terminalARR=R.arr[L],yr1ARR=R.arr[11];
+  const revCAGR=yr1ARR>0?(Math.pow(terminalARR/yr1ARR,1/9)-1)*100:0;
+  const userGrowth=((R.tu[L]/R.tu[0])-1)*100;
+  const yr10OvPct=R.ot[L]/(R.st[L]+R.ot[L])*100;
+  const ultraLTVBE=ltvBreakeven["Ultra"],ultraTermLTV=terminalLTV["Ultra"];
+  const ultraGM0=R.gm["Ultra"][0],ultraGML=R.gm["Ultra"][L];
+  const effGain=(1-effAt(119))*100;
+  let cards='';
+  const ultraClass=ultraLTVBE?(ultraLTVBE<=5?'good':'highlight'):'warn';
+  const ultraMsg=ultraLTVBE
+    ?`Ultra achieves LTV breakeven in <b>Year ${ultraLTVBE}</b> with terminal 10yr LTV of <b>${fmt(ultraTermLTV)}</b>`
+    :`Ultra <b>never reaches positive LTV</b> — terminal LTV is <b>${fmt(ultraTermLTV)}</b>`;
+  cards+=`<div class="story-card ${ultraClass}"><div class="sc-label">Ultra LTV Story</div><div class="sc-value" style="color:${ultraLTVBE?'var(--green)':'var(--red)'}">${ultraLTVBE?'Year '+ultraLTVBE+' Breakeven':'\u26a0 Negative LTV'}</div><div class="sc-detail">${ultraMsg}</div></div>`;
+  const gmClass=terminalGM>=50?'good':terminalGM>=0?'highlight':'warn';
+  cards+=`<div class="story-card ${gmClass}"><div class="sc-label">Margin Trajectory</div><div class="sc-value" style="color:${terminalGM>=0?'var(--green)':'var(--red)'}">${R.bgm[0].toFixed(0)}% \u2192 ${terminalGM.toFixed(0)}%</div><div class="sc-detail">Blended GM improves <b>+${(terminalGM-R.bgm[0]).toFixed(0)}pp</b> over 10 years.${gmPositiveYear?' Crosses breakeven in <b>Year '+gmPositiveYear+'</b>.':' Never reaches breakeven.'} COGS efficiency gains of <b>${effGain.toFixed(0)}%</b> are the primary driver.</div></div>`;
+  const revClass=revCAGR>=15?'good':'highlight';
+  cards+=`<div class="story-card ${revClass}"><div class="sc-label">Revenue Scale</div><div class="sc-value" style="color:var(--accent2)">${fmt(terminalARR)} ARR</div><div class="sc-detail">From <b>${fmt(yr1ARR)}</b> Yr1 to <b>${fmt(terminalARR)}</b> Yr10 — a <b>${revCAGR.toFixed(0)}% CAGR</b>. Overage contributes <b>${yr10OvPct.toFixed(0)}%</b> of Yr10 revenue. Users grow <b>${userGrowth.toFixed(0)}%</b> over the period.</div></div>`;
+  const ltvOrder=TIERS.map(t=>({t,v:terminalLTV[t]})).sort((a,b)=>b.v-a.v);
+  const ltvOrdered=ltvOrder[0].v>ltvOrder[1].v&&ltvOrder[1].v>ltvOrder[2].v&&ltvOrder[2].v>ltvOrder[3].v;
+  const ltvClass=(ltvOrder[0].t==='Ultra'&&ltvOrdered)?'good':'warn';
+  cards+=`<div class="story-card ${ltvClass}"><div class="sc-label">LTV Hierarchy</div><div class="sc-value" style="color:${ltvClass==='good'?'var(--green)':'var(--yellow)'}">${ltvOrder[0].t==='Ultra'&&ltvOrdered?'\u2713 Correct Order':'\u26a0 Out of Order'}</div><div class="sc-detail">${ltvOrder.map(x=>`${x.t}: <b>${fmt(x.v)}</b>`).join(' > ')}</div></div>`;
+  const beMap=TIERS.map(t=>`<span style="color:${TC[t]}">${t}: ${ltvBreakeven[t]?'Yr'+ltvBreakeven[t]:'Never'}</span>`).join(' \u00b7 ');
+  cards+=`<div class="story-card"><div class="sc-label">LTV Breakeven Timeline</div><div class="sc-value" style="font-size:13px">${beMap}</div><div class="sc-detail">Every tier should reach positive LTV by Year 5 for a healthy portfolio</div></div>`;
+  cards+=`<div class="story-card"><div class="sc-label">Ultra Margin Journey</div><div class="sc-value" style="color:var(--ultra)">${ultraGM0.toFixed(0)}% \u2192 ${ultraGML.toFixed(0)}%</div><div class="sc-detail">Ultra starts at <b>${ultraGM0.toFixed(0)}% GM</b> — the most cost-intensive tier. ${ultraGML>=0?`Reaches <b>${ultraGML.toFixed(0)}%</b> by Yr10 via efficiency gains.`:`Still at <b>${ultraGML.toFixed(0)}%</b> by Yr10 — needs more efficiency or price adjustment.`}</div></div>`;
+  $('story-summary').innerHTML=`<div class="story-box"><div class="story-title"><span class="icon">\ud83d\udcca</span> Scenario Story — Key Insights</div><div class="story-grid">${cards}</div></div>`;
+}
+
+/* ══ SENSITIVITY HELPER (from v5) ══ */
+function runWithOverrides(overrides){
+  const saved={};
+  Object.entries(overrides).forEach(([p,val])=>{const parts=p.split('.');if(parts.length===3){saved[p]=S.skus[parts[1]][parts[2]];S.skus[parts[1]][parts[2]]=val;}else if(parts.length===1){saved[p]=S[parts[0]];S[parts[0]]=val;}});
+  const R=simulate();
+  Object.entries(saved).forEach(([p,val])=>{const parts=p.split('.');if(parts.length===3)S.skus[parts[1]][parts[2]]=val;else if(parts.length===1)S[parts[0]]=val;});
+  return R;
+}
+
 /* ══ CHARTS ══ */
 const ML=Array.from({length:60},(_,i)=>i%12===0?`Yr ${Math.floor(i/12)+1}`:'');
 function ch(id,type,ds,yFmt,extra={}){
@@ -577,6 +735,7 @@ Chart.register(dlPlugin);
 /* ══ RENDER ══ */
 function render(){
   buildYrTabs();
+  buildTabs();
 
   // View toggle removed — always annual
 
@@ -589,7 +748,7 @@ function render(){
     <div class="kpi"><div class="l">Users Yr10</div><div class="n">${fN(R.tu[L])}</div><div class="s">${(R.tu[L]/R.tu[0]*100-100).toFixed(0)}% growth</div></div>
     <div class="kpi"><div class="l">Rev M0</div><div class="n">${fmt(tR0)}</div><div class="s">Yr10: ${fmt(tRL)}</div></div>
     <div class="kpi"><div class="l">GM M0</div><div class="n" style="color:${R.bgm[0]>=0?'var(--green)':'var(--red)'}">${R.bgm[0].toFixed(1)}%</div><div class="s">Yr10: ${R.bgm[L].toFixed(1)}%</div></div>
-    <div class="kpi"><div class="l">GM Δ</div><div class="n" style="color:var(--green)">+${(R.bgm[L]-R.bgm[0]).toFixed(1)}pp</div><div class="s">M0→Yr5</div></div>
+    <div class="kpi"><div class="l">GM \u0394</div><div class="n" style="color:var(--green)">+${(R.bgm[L]-R.bgm[0]).toFixed(1)}pp</div><div class="s">M0\u2192Yr5</div></div>
     <div class="kpi"><div class="l">10yr NPV</div><div class="n">${fmt(npv)}</div><div class="s">U:$${R.ltv["Ultra"][L].toFixed(0)} P:$${R.ltv["Pro"][L].toFixed(0)}</div></div>`;
 
   // ── Principles Checklist ──
@@ -616,13 +775,13 @@ function render(){
   // 4. Entitlement ratio: Ultra > Max > Pro+ > Pro
   const r0=TIERS.map(t=>S.skus[t].eYr1/S.skus[t].p);
   const p4=r0[3]>r0[2]&&r0[2]>r0[1]&&r0[1]>r0[0];
-  const p4d=p4?`Yr1: U ${r0[3].toFixed(1)}× > M ${r0[2].toFixed(1)}× > P+ ${r0[1].toFixed(1)}× > P ${r0[0].toFixed(1)}×`
-    :`Yr1: ${TIERS.map((t,i)=>`${t} ${r0[i].toFixed(1)}×`).join(', ')} — higher tiers should have more generous ratios`;
+  const p4d=p4?`Yr1: U ${r0[3].toFixed(1)}\u00d7 > M ${r0[2].toFixed(1)}\u00d7 > P+ ${r0[1].toFixed(1)}\u00d7 > P ${r0[0].toFixed(1)}\u00d7`
+    :`Yr1: ${TIERS.map((t,i)=>`${t} ${r0[i].toFixed(1)}\u00d7`).join(', ')} — higher tiers should have more generous ratios`;
 
   // 5. Entitlement/Price ratio increases over time (eGrow > 0 for all)
   const p5fails=TIERS.filter(t=>S.skus[t].eGrow<0);
   const p5=p5fails.length===0;
-  const p5d=p5?'All tiers: ratio growing (eGrow ≥ 0%)':`${p5fails.join(', ')} has negative entitlement growth`;
+  const p5d=p5?'All tiers: ratio growing (eGrow \u2265 0%)':`${p5fails.join(', ')} has negative entitlement growth`;
 
   // 6. Overage increases over time (Yr10 > Yr1)
   const p6fails=TIERS.filter(t=>S.skus[t].ovPctYr10<S.skus[t].ovPctYr1);
@@ -653,14 +812,28 @@ function render(){
     [p8,'ARPU: Ultra > Max > Pro+ > Pro',p8d],
   ];
   $('principles-checklist').innerHTML=`<div class="checklist">
-    <div class="checklist-title">${allPass?'✅':'⚠️'} Principles Checklist (${checks.filter(c=>c[0]).length}/${checks.length})</div>
+    <div class="checklist-title">${allPass?'\u2705':'\u26a0\ufe0f'} Principles Checklist (${checks.filter(c=>c[0]).length}/${checks.length})</div>
     ${checks.map(([ok,lbl,detail])=>`<div class="check-item">
-      <span class="check-icon" style="color:${ok?'var(--green)':'var(--red)'}">${ok?'✓':'✗'}</span>
+      <span class="check-icon" style="color:${ok?'var(--green)':'var(--red)'}">${ok?'\u2713':'\u2717'}</span>
       <span class="check-label" style="color:${ok?'var(--green)':'var(--red)'}">${lbl}</span>
       <span class="check-detail">${detail}</span>
     </div>`).join('')}
   </div>`;
 
+  // ── Story Highlights ──
+  generateStory(R);
+
+  // ── Tab Dispatch ──
+  if(activeTab==='overview') renderOverview(R);
+  else if(activeTab==='pl') renderPL(R);
+  else if(activeTab==='unit') renderUnit(R);
+  else if(activeTab==='invest') renderInvest(R);
+  else if(activeTab==='sens') renderSensitivity(R);
+}
+
+/* ══ TAB: OVERVIEW — original chart rendering ══ */
+function renderOverview(R){
+  const L=119;
   const ln={tension:.4,pointRadius:0,borderWidth:2};
   const f$=v=>fmt(v),fp=v=>v.toFixed(0)+'%',fu=v=>fN(v),fm=v=>'$'+v.toFixed(0);
   // Always annual
@@ -774,8 +947,80 @@ function render(){
   ch('a-eff','line',[{label:'COGS Reduction %',data:YR_LABELS.map((_,y)=>((1-effAt(y*12+6))*100)),borderColor:'#4ade80',...ln,pointRadius:3,_showLabels:true}],v=>v.toFixed(0)+'%',{labels:YR_LABELS,maxX:10,labelFmt:v=>v.toFixed(0)+'%'});
 }
 
-function fullBuild(){buildGlobs();buildRocks();buildSku();requestAnimationFrame(()=>{onEdit();});}
+/* ══ TAB: P&L (from v5) ══ */
+function renderPL(R){
+  const d=(a,m)=>toAnnual(a,m);
+  const ln={tension:.4,pointRadius:0,borderWidth:2};
+  const f$=v=>fmt(v);
+  // Waterfall charts
+  ch('waterfall-rev','bar',[...TIERS.map(t=>({label:t+' Sub',data:d(R.sr[t],'sum'),backgroundColor:TC[t]+'cc',stack:'a',borderRadius:1})),...TIERS.map(t=>({label:t+' Ovg',data:d(R.or[t],'sum'),backgroundColor:TC[t]+'55',stack:'a',borderRadius:1,borderWidth:1,borderColor:TC[t]}))],v=>fmt(v),{stacked:true,labels:YR_LABELS,maxX:10,labelFmt:fmt});
+  ch('waterfall-cum','bar',[{label:'Sub ARR',data:d(R.st.map(v=>v*12),'last'),backgroundColor:'#16a34acc',stack:'a',borderRadius:2},{label:'Ovg ARR',data:d(R.ot.map(v=>v*12),'last'),backgroundColor:'#4ade80aa',stack:'a',borderRadius:2},{label:'Total',data:d(R.arr,'last'),type:'line',borderColor:'#fff',borderWidth:2,pointRadius:4,tension:.4,_showLabels:true}],v=>fmt(v),{stacked:true,labels:YR_LABELS,maxX:10,labelFmt:fmt});
+  // P&L table
+  const aR=d(R.st.map((v,i)=>v+R.ot[i]),'sum'),aS=d(R.st,'sum'),aO=d(R.ot,'sum'),aC=d(TIERS.reduce((a,t)=>a.map((v,i)=>v+R.cg[t][i]),Array(120).fill(0)),'sum'),aG=aR.map((v,i)=>v-aC[i]),aGM=aR.map((v,i)=>v>0?(v-aC[i])/v*100:0),aU=d(R.tu,'last');
+  const pr=(l,a,p)=>{const t=a.reduce((x,b)=>x+b,0);return`<tr><td>${l}</td>${a.map(v=>`<td class="${v<0?'neg':v>0?'pos':''}">${p?v.toFixed(1)+'%':fmtFull(v)}</td>`).join('')}${p?'<td>—</td>':`<td class="${t<0?'neg':'pos'}">${fmtFull(t)}</td>`}</tr>`;};
+  $('pl-table').innerHTML=`<thead><tr><th>Metric</th>${YR_LABELS.map(y=>`<th>${y}</th>`).join('')}<th>10yr Total</th></tr></thead><tbody>${pr('Subscribers',aU)}${pr('Revenue',aR)}${pr('  Subscription',aS)}${pr('  Overage',aO)}${pr('COGS',aC.map(v=>-v))}<tr class="total-row"><td>Gross Profit</td>${aG.map(v=>`<td class="${v<0?'neg':'pos'}">${fmtFull(v)}</td>`).join('')}<td class="${aG.reduce((a,b)=>a+b,0)<0?'neg':'pos'}">${fmtFull(aG.reduce((a,b)=>a+b,0))}</td></tr><tr class="total-row"><td>Gross Margin %</td>${aGM.map(v=>`<td class="${v<0?'neg':'pos'}">${v.toFixed(1)}%</td>`).join('')}<td>—</td></tr></tbody>`;
+  // Revenue detail
+  const tc={"Pro":"tier-pro","Pro+":"tier-pp","Max":"tier-mx","Ultra":"tier-ultra"};
+  let rdH=`<thead><tr><th>Tier</th>${YR_LABELS.map(y=>`<th>${y}</th>`).join('')}<th>10yr Total</th></tr></thead><tbody>`;const tRA=Array(10).fill(0);
+  TIERS.forEach(t=>{const rv=d(R.sr[t].map((v,i)=>v+R.or[t][i]),'sum'),tot=rv.reduce((a,b)=>a+b,0);rv.forEach((v,i)=>tRA[i]+=v);rdH+=`<tr><td class="${tc[t]}">${t}</td>${rv.map(v=>`<td>${fmtFull(v)}</td>`).join('')}<td><strong>${fmtFull(tot)}</strong></td></tr>`;});
+  rdH+=`<tr class="total-row"><td>Total</td>${tRA.map(v=>`<td>${fmtFull(v)}</td>`).join('')}<td><strong>${fmtFull(tRA.reduce((a,b)=>a+b,0))}</strong></td></tr></tbody>`;
+  $('rev-detail-table').innerHTML=rdH;
+}
+
+/* ══ TAB: UNIT ECONOMICS (from v5) ══ */
+function renderUnit(R){
+  [0,4,9].forEach((yr,idx)=>{
+    const tid=['unit-econ-table','unit-econ-table-y5','unit-econ-table-y10'][idx],m=yr*12+6,ef=effAt(m),pd=S.provDisc/100,rows=[];
+    TIERS.forEach(t=>{const s=S.skus[t],ent=getE(t,m),au=getAvgUse(t,yr),ov=getOvPct(t,m),ut=getUtil(t),wP=1-ov,oe=Math.max(0,au-ent),sr=s.p,or=ov*oe*(1-s.ovDisc/100),tr=sr+or,cg=(wP*ent*ut+ov*au)*(1-pd)*ef,gp=tr-cg,gm=tr>0?gp/tr*100:0;
+      if(!rows.length)['Price ($/mo)','Entitlement ($)','Value Ratio','Avg Consumption ($)','Overage %','Sub Rev/User','Ovg Rev/User','Total Rev/User','COGS/User','GP/User','Gross Margin %'].forEach(l=>rows.push({l,v:[]}));
+      rows[0].v.push('$'+s.p);rows[1].v.push('$'+ent);rows[2].v.push((ent/s.p).toFixed(1)+'\u00d7');rows[3].v.push('$'+au.toFixed(0));rows[4].v.push((ov*100).toFixed(0)+'%');rows[5].v.push('$'+sr.toFixed(2));rows[6].v.push('$'+or.toFixed(2));rows[7].v.push('$'+tr.toFixed(2));rows[8].v.push('$'+cg.toFixed(2));rows[9].v.push({val:'$'+gp.toFixed(2),cls:gp>=0?'pos':'neg'});rows[10].v.push({val:gm.toFixed(1)+'%',cls:gm>=0?'pos':'neg'});});
+    let h=`<thead><tr><th>Metric</th>${TIERS.map(t=>`<th style="color:${TC[t]}">${t}</th>`).join('')}</tr></thead><tbody>`;
+    rows.forEach((r,ri)=>{h+=`<tr${ri>=9?' class="total-row"':''}><td>${r.l}</td>${r.v.map(v=>typeof v==='object'?`<td class="${v.cls}">${v.val}</td>`:`<td>${v}</td>`).join('')}</tr>`;});
+    $(tid).innerHTML=h+'</tbody>';
+  });
+}
+
+/* ══ TAB: INVESTMENT & PAYBACK (from v5) ══ */
+function renderInvest(R){
+  const ln={tension:.4,pointRadius:0,borderWidth:2},d=(a,m)=>toAnnual(a,m);
+  const tGP=Array(120).fill(0);TIERS.forEach(t=>{R.gp[t].forEach((v,i)=>tGP[i]+=v);});
+  const cumGP=[];let rg=0;tGP.forEach(v=>{rg+=v;cumGP.push(rg);});
+  let bm=-1;for(let i=0;i<120;i++){if(cumGP[i]>=0){bm=i;break;}}
+  const mI=Math.min(...cumGP),y10GP=cumGP[119];
+  const cGPT={};TIERS.forEach(t=>{const c=[];let r=0;R.gp[t].forEach((v,i)=>{r+=v/(R.u[t][i]||1);c.push(r);});cGPT[t]=c;});
+  const pbM={};TIERS.forEach(t=>{let p=-1;for(let i=0;i<120;i++){if(cGPT[t][i]>=0){p=i;break;}}pbM[t]=p;});
+  $('invest-cards').innerHTML=`<div class="invest-card"><h3>\ud83d\udcc9 Max Investment Required</h3><div class="big" style="color:var(--red)">${fmt(Math.abs(mI))}</div><div class="sub">Deepest negative cumulative GP</div></div><div class="invest-card"><h3>\ud83d\udcc5 Business Breakeven</h3><div class="big" style="color:${bm>=0?'var(--green)':'var(--red)'}">${bm>=0?`Month ${bm+1} (Yr ${Math.ceil((bm+1)/12)})`:'Never (10yr)'}</div><div class="sub">When cumulative GP crosses $0</div></div><div class="invest-card"><h3>\ud83d\udcb0 10yr Cumulative GP</h3><div class="big" style="color:${y10GP>=0?'var(--green)':'var(--red)'}">${fmt(y10GP)}</div><div class="sub">Total GP over 10 years</div></div>`;
+  ch('cum-gp-chart','bar',[{label:'Cum GP',data:d(cumGP,'last'),backgroundColor:d(cumGP,'last').map(v=>v>=0?'#4ade80cc':'#f87171cc'),borderRadius:4}],v=>fmt(v),{labels:YR_LABELS,maxX:10,labelFmt:fmt});
+  ch('cum-gp-tier','line',TIERS.map(t=>({label:t,data:d(cGPT[t],'last'),borderColor:TC[t],...ln,pointRadius:4,borderWidth:2.5,_showLabels:true})),v=>'$'+v.toFixed(0),{labels:YR_LABELS,maxX:10,labelFmt:v=>'$'+v.toFixed(0)});
+  let h=`<thead><tr><th>Tier</th><th>Payback Month</th><th>Payback Year</th><th>Max Neg GP/User</th><th>Yr5 Cum GP/User</th><th>Yr10 Cum GP/User</th></tr></thead><tbody>`;
+  TIERS.forEach(t=>{const p=pbM[t],mn=Math.min(...cGPT[t]),y5=cGPT[t][59],y10=cGPT[t][119];h+=`<tr><td style="color:${TC[t]};font-weight:700">${t}</td><td>${p>=0?'Mo '+(p+1):'Never'}</td><td>${p>=0?'Yr '+Math.ceil((p+1)/12):'—'}</td><td class="neg">$${mn.toFixed(2)}</td><td class="${y5>=0?'pos':'neg'}">$${y5.toFixed(2)}</td><td class="${y10>=0?'pos':'neg'}">$${y10.toFixed(2)}</td></tr>`;});
+  h+=`<tr class="total-row"><td>Total Business</td><td>${bm>=0?'Mo '+(bm+1):'Never'}</td><td>${bm>=0?'Yr '+Math.ceil((bm+1)/12):'—'}</td><td class="neg">${fmt(Math.abs(mI))}</td><td class="${cumGP[59]>=0?'pos':'neg'}">${fmt(cumGP[59])}</td><td class="${y10GP>=0?'pos':'neg'}">${fmt(y10GP)}</td></tr></tbody>`;
+  $('payback-table').innerHTML=h;
+  ch('monthly-gp-chart','bar',[{label:'Annual GP',data:d(tGP,'sum'),backgroundColor:d(tGP,'sum').map(v=>v>=0?'#4ade80cc':'#f87171cc'),borderRadius:4}],v=>fmt(v),{labels:YR_LABELS,maxX:10,labelFmt:fmt});
+  ch('monthly-gp-tier','bar',TIERS.map(t=>({label:t,data:d(R.gp[t],'sum'),backgroundColor:TC[t]+'cc',stack:'a',borderRadius:1})),v=>fmt(v),{stacked:true,labels:YR_LABELS,maxX:10,labelFmt:fmt});
+}
+
+/* ══ TAB: SENSITIVITY (from v5) ══ */
+function renderSensitivity(R){
+  const bGM5=toAnnual(R.bgm,'avg')[4],bGM10=toAnnual(R.bgm,'avg')[9],bARR=R.arr[119];
+  function rs(delta){const o={};TIERS.forEach(t=>{o[`skus.${t}.ret`]=Math.max(0,Math.min(100,S.skus[t].ret+delta));});const R2=runWithOverrides(o),g5=toAnnual(R2.bgm,'avg')[4],g10=toAnnual(R2.bgm,'avg')[9],a=R2.arr[119];return{label:`Ret ${delta>=0?'+':''}${delta}pp`,gm5:g5,gm10:g10,arr10:a,users10:R2.tu[119],dgm5:g5-bGM5,dgm10:g10-bGM10,darr10:a-bARR};}
+  function os(delta){const o={};TIERS.forEach(t=>{o[`skus.${t}.ovPctYr1`]=Math.max(0,Math.min(100,S.skus[t].ovPctYr1+delta));o[`skus.${t}.ovPctYr10`]=Math.max(0,Math.min(100,S.skus[t].ovPctYr10+delta));});const R2=runWithOverrides(o),g5=toAnnual(R2.bgm,'avg')[4],g10=toAnnual(R2.bgm,'avg')[9],a=R2.arr[119];return{label:`Ovg ${delta>=0?'+':''}${delta}pp`,gm5:g5,gm10:g10,arr10:a,dgm5:g5-bGM5,dgm10:g10-bGM10,darr10:a-bARR};}
+  function ps(pct){const o={};TIERS.forEach(t=>{o[`skus.${t}.p`]=Math.round(S.skus[t].p*(1+pct/100));});const R2=runWithOverrides(o),g5=toAnnual(R2.bgm,'avg')[4],g10=toAnnual(R2.bgm,'avg')[9],a=R2.arr[119];return{label:`Price ${pct>=0?'+':''}${pct}%`,gm5:g5,gm10:g10,arr10:a,dgm5:g5-bGM5,dgm10:g10-bGM10,darr10:a-bARR};}
+  const rR=[-5,-3,-1,0,1,3,5].map(rs),oR=[-10,-5,0,5,10].map(os),pR=[-20,-10,0,10,20].map(ps);
+  function stH(rows,hu){let h=`<thead><tr><th>Scenario</th><th>Yr5 GM%</th><th>\u0394</th><th>Yr10 GM%</th><th>\u0394</th><th>Yr10 ARR</th><th>\u0394</th>${hu?'<th>Yr10 Users</th>':''}</tr></thead><tbody>`;rows.forEach(r=>{const b=Math.abs(r.dgm5)<0.01&&Math.abs(r.dgm10)<0.01;h+=`<tr class="${b?'base-row':''}"><td>${r.label}</td><td>${r.gm5.toFixed(1)}%</td><td class="${r.dgm5>=0?'delta-pos':'delta-neg'}">${r.dgm5>=0?'+':''}${r.dgm5.toFixed(1)}pp</td><td>${r.gm10.toFixed(1)}%</td><td class="${r.dgm10>=0?'delta-pos':'delta-neg'}">${r.dgm10>=0?'+':''}${r.dgm10.toFixed(1)}pp</td><td>${fmt(r.arr10)}</td><td class="${r.darr10>=0?'delta-pos':'delta-neg'}">${r.darr10>=0?'+':''}${fmt(r.darr10)}</td>${hu?`<td>${fN(r.users10)}</td>`:''}</tr>`;});return h+'</tbody>';}
+  $('sens-ret-table').innerHTML=stH(rR,true);$('sens-ov-table').innerHTML=stH(oR,false);$('sens-price-table').innerHTML=stH(pR,false);
+  // Tornado chart
+  const sc=[{label:'Ret +5pp',val:rR[6].dgm5},{label:'Ret -5pp',val:rR[0].dgm5},{label:'Ovg +10pp',val:oR[4].dgm5},{label:'Ovg -10pp',val:oR[0].dgm5},{label:'Price +20%',val:pR[4].dgm5},{label:'Price -20%',val:pR[0].dgm5}].sort((a,b)=>Math.abs(b.val)-Math.abs(a.val));
+  dc('tornado-chart');const tC=document.getElementById('tornado-chart');
+  if(tC){const c=new Chart(tC.getContext('2d'),{type:'bar',data:{labels:sc.map(s=>s.label),datasets:[{label:'\u0394 GM%',data:sc.map(s=>s.val),backgroundColor:sc.map(s=>s.val>=0?'#4ade80cc':'#f87171cc'),borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,layout:{padding:{top:10}},plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>(ctx.parsed.x>=0?'+':'')+ctx.parsed.x.toFixed(2)+'pp'}}},scales:{x:{ticks:{color:'#5a6577',font:{size:9},callback:v=>(v>=0?'+':'')+v.toFixed(1)+'pp'},grid:{color:'rgba(42,49,58,.25)'}},y:{ticks:{color:'#e8edf4',font:{size:10,weight:'bold'}},grid:{display:false}}}}});c.config._noLabels=true;CH['tornado-chart']=c;}
+  // ARR sensitivity chart
+  const aS=[{label:'Ret -5',val:rR[0].arr10},{label:'Ret -3',val:rR[1].arr10},{label:'Base',val:bARR},{label:'Ret +3',val:rR[5].arr10},{label:'Ret +5',val:rR[6].arr10},{label:'Ovg+10',val:oR[4].arr10},{label:'Px+20%',val:pR[4].arr10}];
+  ch('sens-arr-chart','bar',[{label:'Yr10 ARR',data:aS.map(s=>s.val),backgroundColor:aS.map(s=>s.label==='Base'?'#8b7cf7cc':'#38bdf8aa'),borderRadius:4}],v=>fmt(v),{labels:aS.map(s=>s.label),maxX:10,labelFmt:fmt});
+}
+
+function fullBuild(){buildGlobs();buildRocks();buildSku();buildTabs();requestAnimationFrame(()=>{onEdit();});}
 window.addEventListener('load',fullBuild);
+
 </script>
 </body>
 </html>
