@@ -490,14 +490,10 @@ function simulate(){
     const ef=effAt(m);
     const yr=Math.min(9,Math.floor(m/12));
 
-    // Growth: rate decelerates but always exceeds churn to ensure users grow.
+    // Growth: straight monthly rate from input, independent of churn.
     let totalNewU=0;
     TIERS.forEach(t=>{
-      const baseRate=S.skus[t].grow/100;
-      const curRate=baseRate*Math.pow(0.7, m/120); // gentler deceleration
-      const churnRate=1-Math.pow(S.skus[t].ret/100,1/12); // monthly churn
-      const effectiveRate=Math.max(curRate, churnRate+0.005); // always grow above churn
-      const nw=Math.max(1, Math.round(cp[t]*effectiveRate));
+      const nw=Math.max(1, Math.round(cp[t]*S.skus[t].grow/100));
       cp[t]+=nw;te+=nw;totalNewU+=nw;
     });
     R.newUsers.push(totalNewU);
